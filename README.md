@@ -1,6 +1,6 @@
-# Quiz Application Workspace
+# Quizonic
 
-This workspace contains two separate quiz application projects:
+
 
 ## 1. Flask Quiz api
 
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 python run app.py
 ```
 
-## 2. Django Quiz Application (DJANGO_QUIZ/)
+## 2. Django Quiz Application
 
 A Django-based quiz platform that integrates with the Flask application's API for sharing quiz data.
 

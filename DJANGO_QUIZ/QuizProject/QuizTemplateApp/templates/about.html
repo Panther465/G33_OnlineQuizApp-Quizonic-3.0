@@ -1,0 +1,513 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us - QuizVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4a6bff;
+        --secondary: #00c9a7;
+        --dark: #1a1a2e;
+        --light: #f8f9fa;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        background-color: var(--dark);
+        color: var(--light);
+        perspective: 1000px;
+        overflow-x: hidden;
+    }
+
+    #particles-js {
+        display: none;
+        /* Hide particles since we're using base.html particles */
+    }
+
+    .hero {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        perspective: 1000px;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        text-align: center;
+        transform-style: preserve-3d;
+        animation: appear 1s ease-out forwards;
+    }
+
+    @keyframes appear {
+        from {
+            opacity: 0;
+            transform: translateY(50px) rotateX(20deg);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) rotateX(0);
+        }
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        display: inline-block;
+    }
+
+    h1::after {
+        content: '';
+        position: absolute;
+        width: 50%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        bottom: -10px;
+        left: 25%;
+        border-radius: 2px;
+    }
+
+    p {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        animation: fadeIn 1s ease-out forwards;
+        animation-delay: 0.5s;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .features {
+        padding: 4rem 2rem;
+        background-color: rgba(26, 26, 46, 0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: var(--light);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        border-color: var(--primary);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: -100%;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: all 0.6s ease;
+    }
+
+    .feature-card:hover::before {
+        top: 100%;
+        left: 100%;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--secondary);
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--light);
+    }
+
+    .team {
+        padding: 4rem 2rem;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .team-member {
+        text-align: center;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        transform: rotateY(10deg);
+        opacity: 0.5;
+    }
+
+    .team-member.active {
+        transform: rotateY(0);
+        opacity: 1;
+    }
+
+    .team-photo {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 4px solid var(--primary);
+        transition: all 0.3s ease;
+    }
+
+    .team-member:hover .team-photo {
+        transform: scale(1.1);
+        border-color: var(--secondary);
+    }
+
+    .team-name {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .team-role {
+        color: var(--secondary);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .cta {
+        padding: 6rem 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(74, 107, 255, 0.1), rgba(255, 74, 158, 0.1));
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--light);
+        border: none;
+        border-radius: 30px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(45deg, var(--secondary), var(--primary));
+        transition: all 0.5s ease;
+        z-index: -1;
+    }
+
+    .btn:hover::before {
+        width: 100%;
+    }
+
+    .btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.2rem;
+        }
+
+        .hero {
+            min-height: 40vh;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero" id="home">
+    <div class="hero-content">
+        <h1>Welcome to QuizVerse</h1>
+        <p>Discover the ultimate quiz experience designed to challenge your mind and expand your knowledge. Our
+            innovative platform brings learning and fun together in one exciting package.</p>
+        <a href="{% url 'quiz:random_quiz' %}" class="btn">Start Quizzing Now</a>
+    </div>
+</section>
+
+<section class="quick-subscribe" style="padding: 2rem 0; text-align: center;">
+    <h2 style="color: var(--primary); margin-bottom: 1rem;">Get Updates Instantly</h2>
+    <form id="quickSubscribeForm" style="max-width: 400px; margin: 0 auto;">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <input type="email" class="form-control" id="quick_email" name="email" placeholder="Enter your email"
+                required style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #ccc;">
+        </div>
+        <button type="submit" class="btn" style="padding: 0.75rem 2rem;">Subscribe</button>
+    </form>
+</section>
+
+<section class="features" id="features">
+    <h2 class="section-title">Why Choose Us</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3 class="feature-title">Personalized Learning</h3>
+            <p>Our adaptive system tailors quizzes to your knowledge level, ensuring you're always challenged but never
+                overwhelmed.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🌐</div>
+            <h3 class="feature-title">Diverse Topics</h3>
+            <p>From science and history to pop culture and sports, we offer thousands of quizzes across countless
+                categories.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🏆</div>
+            <h3 class="feature-title">Competitive Edge</h3>
+            <p>Compete with friends or join global leaderboards to test your knowledge against quiz enthusiasts
+                worldwide.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3 class="feature-title">Always Fresh</h3>
+            <p>Our content team regularly updates our question bank, ensuring you'll always find something new to
+                explore.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3 class="feature-title">Track Progress</h3>
+            <p>Detailed analytics help you identify strengths and areas for improvement in your knowledge journey.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎮</div>
+            <h3 class="feature-title">Gamified Learning</h3>
+            <p>Earn badges, unlock achievements, and level up as you expand your knowledge in an engaging way.</p>
+        </div>
+    </div>
+</section>
+
+<section class="team" id="team">
+    <h2 class="section-title">Meet Our Team</h2>
+    <div class="team-grid">
+        <div class="team-member">
+            <img src="https://pics.craiyon.com/2023-07-19/6bdc2529d48542fd8b65b73e48700246.webp" alt="Team Member"
+                class="team-photo">
+            <h3 class="team-name">Ankit</h3>
+            <p class="team-role">Founder & CEO</p>
+            <p>Alex created QuizVerse with a vision to make learning fun and accessible to everyone around the globe.
+            </p>
+        </div>
+        <div class="team-member">
+            <img src="https://pics.craiyon.com/2023-07-19/6bdc2529d48542fd8b65b73e48700246.webp" alt="Team Member"
+                class="team-photo">
+            <h3 class="team-name">Aman</h3>
+            <p class="team-role">Content Director</p>
+            <p>With a background in education, Morgan ensures our quizzes are both challenging and educational.</p>
+        </div>
+        <div class="team-member">
+            <img src="https://pics.craiyon.com/2023-07-19/6bdc2529d48542fd8b65b73e48700246.webp" alt="Team Member"
+                class="team-photo">
+            <h3 class="team-name">Harmilap</h3>
+            <p class="team-role">Lead Developer</p>
+            <p>Jamie's technical expertise brings our platform to life with innovative features and seamless
+                experiences.</p>
+        </div>
+        <div class="team-member">
+            <img src="https://img.freepik.com/free-photo/lifestyle-scene-anime-style-with-person-doing-daily-tasks_23-2151002599.jpg?t=st=1744850375~exp=1744853975~hmac=44ba78095f45b878a58e390735be660751099417d6b1333ec12900d8f37bcee5&w=1380"
+                alt="Team Member" class="team-photo">
+            <h3 class="team-name">Punnet</h3>
+            <p class="team-role">UX Designer</p>
+            <p>Sam crafts beautiful interfaces that make quizzing a joy for users of all ages and abilities.</p>
+        </div>
+    </div>
+</section>
+
+<section class="cta" id="contact">
+    <h2 class="section-title">Ready to Challenge Yourself?</h2>
+    <p>Join thousands of curious minds who are expanding their knowledge every day.</p>
+    <a href="{% url 'quiz:register' %}" class="btn">Sign Up Free</a>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Animate team members on scroll
+    document.addEventListener('DOMContentLoaded', function () {
+        const teamMembers = document.querySelectorAll('.team-member');
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.4
+        };
+
+        const observer = new IntersectionObserver(function (entries, observer) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, observerOptions);
+
+        teamMembers.forEach(member => {
+            observer.observe(member);
+        });
+
+        // Animation for feature cards
+        const featureCards = document.querySelectorAll('.feature-card');
+
+        featureCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(50px)';
+            card.style.transition = 'all 0.5s ease';
+            card.style.transitionDelay = `${index * 0.1}s`;
+        });
+
+        const featureObserver = new IntersectionObserver(function (entries, observer) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        featureCards.forEach(card => {
+            featureObserver.observe(card);
+        });
+
+        // 3D tilt effect on hover for cards
+        featureCards.forEach(card => {
+            card.addEventListener('mousemove', function (e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const xc = rect.width / 2;
+                const yc = rect.height / 2;
+
+                const dx = x - xc;
+                const dy = y - yc;
+
+                this.style.transform = `perspective(1000px) rotateY(${dx / 30}deg) rotateX(${-dy / 30}deg) translateY(-10px)`;
+            });
+
+            card.addEventListener('mouseleave', function () {
+                this.style.transform = 'perspective(1000px) rotateY(0) rotateX(0) translateY(0)';
+            });
+        });
+    });
+
+    document.getElementById('subscribeForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('{% url "quiz:about" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    this.reset();
+                } else {
+                    alert(data.error || 'An error occurred');
+                }
+            })
+            .catch(error => {
+                alert('An error occurred while processing your subscription');
+            });
+    });
+
+    document.getElementById('quickSubscribeForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('{% url "quiz:about" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    this.reset();
+                } else {
+                    alert(data.error || 'An error occurred');
+                }
+            })
+            .catch(error => {
+                alert('An error occurred while processing your subscription');
+            });
+    });
+</script>
+{% endblock %}

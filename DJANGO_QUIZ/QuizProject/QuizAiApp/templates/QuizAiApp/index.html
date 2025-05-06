@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}AI Quiz Generator{% endblock %}
+
+{% block extra_css %}
+<style>
+    textarea::placeholder {
+        color: #b0b0b0 !important;
+        /* Lighter color for better visibility */
+        opacity: 1;
+        /* Override any default opacity */
+    }
+
+    /* Gradient text effect */
+    .gradient-text {
+        background: linear-gradient(135deg, #4cc9f0, #3db8df, #4361ee, #3a56d4);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        font-size: 3.5rem;
+        letter-spacing: 2px;
+        font-family: sans-serif;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* AI Star styling */
+    .ai-star {
+        display: inline-block;
+        position: relative;
+        width: 40px;
+        height: 40px;
+        margin-left: 15px;
+        vertical-align: middle;
+    }
+
+    .ai-star svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .ai-star path {
+        fill: url(#star-gradient);
+    }
+
+    /* Star styling */
+    .star-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .star {
+        position: absolute;
+        width: 0;
+        height: 0;
+        margin: 0.5em;
+        color: #4cc9f0;
+        filter: drop-shadow(0 0 10px rgba(76, 201, 240, 0.7));
+        z-index: 0;
+    }
+
+    /* Create the star shape using clip-path */
+    .star::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -1em;
+        width: 2em;
+        height: 2em;
+        background-color: currentColor;
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%,
+                79% 91%, 50% 70%, 21% 91%, 32% 57%,
+                2% 35%, 39% 35%);
+        transform-origin: center;
+    }
+
+    .feature-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #4cc9f0;
+    }
+
+    .btn-get-started {
+        background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        border: none;
+        font-size: 1.2rem;
+        font-weight: 600;
+        padding: 0.8rem 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-get-started:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(67, 97, 238, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 text-center">
+            <h1 class="gradient-text mb-4">
+                AI Quiz Generator
+                <span class="ai-star">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="star-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#4cc9f0" />
+                                <stop offset="50%" stop-color="#3db8df" />
+                                <stop offset="75%" stop-color="#4361ee" />
+                                <stop offset="100%" stop-color="#3a56d4" />
+                            </linearGradient>
+                        </defs>
+                        <path
+                            d="M12,1.5l2.61,6.727l6.89,0.53l-5.278,4.688l1.5,7.055L12,16.67l-5.722,3.83l1.5-7.055L2.5,8.757l6.89-0.53L12,1.5z" />
+                    </svg>
+                </span>
+            </h1>
+            <p class="lead mb-5">Create custom quizzes on any topic using advanced AI technology.</p>
+
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
+                <a href="{% url 'quizai:generate' %}" class="btn btn-primary btn-lg btn-get-started px-4 gap-3">
+                    Create a Quiz <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 py-5">
+        <div class="col-md-4">
+            <div class="card feature-card bg-light h-100">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <h3>Instant Creation</h3>
+                    <p>Generate comprehensive quizzes in seconds on any topic you choose.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card feature-card bg-light h-100">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon">
+                        <i class="bi bi-sliders"></i>
+                    </div>
+                    <h3>Customizable</h3>
+                    <p>Choose difficulty level and number of questions to match your needs.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card feature-card bg-light h-100">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon">
+                        <i class="bi bi-download"></i>
+                    </div>
+                    <h3>Downloadable</h3>
+                    <p>Save your quizzes as PDFs to share or use offline.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-4">Ready to create your own quiz?</h2>
+            <a href="{% url 'quizai:generate' %}" class="btn btn-primary btn-lg">Get Started Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Update question count display
+    document.getElementById('num-questions').addEventListener('input', function () {
+        document.getElementById('question-count').textContent = this.value + ' Questions';
+    });
+
+    // Handle generating quiz
+    document.getElementById('generate-btn').addEventListener('click', function () {
+        const prompt = document.getElementById('prompt').value.trim();
+        const numQuestions = document.getElementById('num-questions').value;
+
+        if (!prompt) {
+            alert('Please enter a quiz topic or instructions.');
+            return;
+        }
+
+        // Get selected template
+        const selectedTemplate = document.querySelector('.template-option.selected').dataset.template || 'stacked';
+
+        // Show loading spinner
+        document.getElementById('generator-form').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        // Start progress animation
+        startProgress();
+
+        // Prepare data for the request
+        const requestData = {
+            prompt: prompt,
+            num_questions: parseInt(numQuestions),
+            template: selectedTemplate
+        };
+
+        // Make request to backend
+        fetch('{% url "quizai:generate" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading spinner
+                document.getElementById('loading').style.display = 'none';
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    document.getElementById('generator-form').style.display = 'block';
+                    return;
+                }
+
+                // Display quiz preview
+                document.getElementById('quiz-preview').style.display = 'block';
+                displayQuizPreview(data.questions);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while generating the quiz. Please try again.');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('generator-form').style.display = 'block';
+            });
+    });
+
+    // Helper function to get cookie value (for CSRF token)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Progress animation
+    function startProgress() {
+        const progressBar = document.getElementById('generation-progress');
+        const progressText = document.querySelector('.progress-text');
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 95) {
+                clearInterval(interval);
+            } else {
+                width += Math.random() * 5;
+                if (width > 95) width = 95;
+                progressBar.style.width = width + '%';
+                progressBar.setAttribute('aria-valuenow', width);
+                progressText.textContent = Math.round(width) + '%';
+            }
+        }, 300);
+    }
+
+    // Display quiz preview
+    function displayQuizPreview(questions) {
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+
+        questions.forEach((q, index) => {
+            const questionCard = document.createElement('div');
+            questionCard.className = 'card mb-3';
+            questionCard.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            questionCard.style.borderColor = '#444';
+
+            questionCard.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">Question ${index + 1}</h5>
+                    <p>${q.question}</p>
+                    <ul class="list-group list-group-flush" style="background-color: transparent;">
+                        ${q.options.map(opt => `<li class="list-group-item" style="background-color: transparent; color: #e0e0e0;">${opt}</li>`).join('')}
+                    </ul>
+                    <div class="mt-2">
+                        <span class="badge bg-success">Answer: ${q.correct_answer}</span>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(questionCard);
+        });
+    }
+
+    // Template selection
+    document.querySelectorAll('.template-option').forEach(option => {
+        option.addEventListener('click', function () {
+            document.querySelectorAll('.template-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    // Handle edit button
+    document.getElementById('edit-btn').addEventListener('click', function () {
+        const editPrompt = document.getElementById('edit-prompt').value.trim();
+
+        if (!editPrompt) {
+            alert('Please enter instructions for editing the quiz.');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('quiz-preview').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        // Start progress animation
+        startProgress();
+
+        // Make request to backend
+        fetch('{% url "quizai:edit" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ edit_prompt: editPrompt })
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    document.getElementById('quiz-preview').style.display = 'block';
+                    return;
+                }
+
+                // Display updated quiz preview
+                document.getElementById('quiz-preview').style.display = 'block';
+                displayQuizPreview(data.questions);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while editing the quiz. Please try again.');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('quiz-preview').style.display = 'block';
+            });
+    });
+
+    // Handle new quiz button
+    document.getElementById('new-quiz-btn').addEventListener('click', function () {
+        document.getElementById('quiz-preview').style.display = 'none';
+        document.getElementById('generator-form').style.display = 'block';
+        document.getElementById('prompt').value = '';
+        document.getElementById('edit-prompt').value = '';
+    });
+
+    // Handle start quiz button
+    document.getElementById('start-quiz-btn').addEventListener('click', function () {
+        // Get selected template
+        const selectedTemplate = document.querySelector('.template-option.selected').dataset.template || 'stacked';
+
+        // Redirect to the quiz page
+        window.location.href = `{% url 'quizai:start_quiz' %}?template=${selectedTemplate}`;
+    });
+</script>
+{% endblock %}

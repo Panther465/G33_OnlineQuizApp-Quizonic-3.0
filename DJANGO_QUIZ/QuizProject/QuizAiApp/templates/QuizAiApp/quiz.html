@@ -1,0 +1,786 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Score Result Styles */
+    @keyframes scoreCountUp {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes scoreGlow {
+        0% { box-shadow: 0 0 10px rgba(74, 107, 255, 0.5); }
+        50% { box-shadow: 0 0 30px rgba(74, 107, 255, 0.8); }
+        100% { box-shadow: 0 0 10px rgba(74, 107, 255, 0.5); }
+    }
+
+    @keyframes confetti {
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(1000px) rotate(720deg); }
+    }
+
+    @keyframes floatIn {
+        0% { transform: translateY(20px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .confetti-container {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 999;
+        overflow: hidden;
+    }
+
+    .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        opacity: 0.7;
+    }
+
+    /* Question Styles */
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .question-number {
+        position: relative;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(74, 107, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        border-left: 3px solid #4a6bff;
+    }
+
+    .question-progress-wrap {
+        position: relative;
+    }
+
+    .question-progress-badge {
+        background: linear-gradient(135deg, #4a6bff, #6a5cff);
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: white;
+        box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    .question-text-container {
+        background: linear-gradient(145deg, rgba(45, 45, 75, 0.6), rgba(35, 35, 65, 0.8));
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+        overflow: hidden;
+        animation: floatIn 0.5s ease-out forwards;
+    }
+
+    .question-text-container::before {
+        content: "";
+        position: absolute;
+        top: -100px;
+        left: -100px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(74, 107, 255, 0.1), transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+    }
+
+    .question-text-container::after {
+        content: "\f059";
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 1.5rem;
+        color: rgba(74, 107, 255, 0.2);
+        z-index: 0;
+    }
+
+    .quiz-question {
+        position: relative;
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: white;
+        line-height: 1.6;
+        z-index: 1;
+    }
+
+    /* Options Styling */
+    .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .option-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0 !important;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .option-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(8px);
+        border-color: rgba(74, 107, 255, 0.3);
+    }
+
+    .option-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: all 0.5s ease;
+    }
+
+    .option-item:hover::before {
+        left: 100%;
+    }
+
+    .form-check-input {
+        width: 22px;
+        height: 22px;
+        margin-top: 2px;
+        border: 2px solid rgba(74, 107, 255, 0.5);
+        background-color: rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: #4a6bff;
+        border-color: #4a6bff;
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(74, 107, 255, 0.25);
+    }
+
+    .form-check-label {
+        padding-left: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 400;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    #next-btn {
+        background: linear-gradient(45deg, #4a6bff, #6a5cff);
+        background-size: 200% 200%;
+        animation: gradient 5s ease infinite;
+        border: none;
+        box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+        transition: all 0.3s ease;
+        color: white;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+    }
+
+    #next-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+    }
+
+    #next-btn:active {
+        transform: translateY(-1px);
+    }
+
+    /* Score Result Styles */
+    .score-container {
+        position: relative;
+        background: linear-gradient(145deg, rgba(40, 40, 70, 0.9), rgba(25, 25, 45, 0.9));
+        border-radius: 24px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .score-container::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(74, 107, 255, 0.1), transparent 70%);
+        transform: rotate(30deg);
+        z-index: 0;
+    }
+
+    .score-title {
+        position: relative;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 700;
+        font-size: 1.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        z-index: 1;
+    }
+
+    .score-circle {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 2rem;
+        border-radius: 50%;
+        background: linear-gradient(145deg, rgba(50, 50, 80, 0.6), rgba(30, 30, 60, 0.8));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: scoreGlow 3s infinite;
+        z-index: 1;
+    }
+
+    .score-value {
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(to right, #ffffff, #a5b4fc);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: scoreCountUp 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .score-value .score-divider {
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: #a5b4fc !important;
+        color: #a5b4fc !important;
+    }
+
+    .score-divider {
+        font-size: 2.5rem;
+        margin: 0 0.25rem;
+        opacity: 0.8;
+        color: #a5b4fc !important;
+    }
+
+    .score-gauge {
+        position: relative;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        overflow: hidden;
+        margin: 1.5rem 0;
+        z-index: 1;
+    }
+
+    .score-gauge-fill {
+        height: 100%;
+        border-radius: 30px;
+        transition: width 1.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .score-percentage {
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-align: right;
+        margin-top: 0.5rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .score-message {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        background: linear-gradient(to right, #4a6bff, #00c9a7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .action-btn {
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transition: width 0.3s ease;
+        z-index: -1;
+    }
+
+    .action-btn:hover::before {
+        width: 100%;
+    }
+
+    .btn-download {
+        background: linear-gradient(to right, #4a6bff, #6a5cff);
+        color: white;
+        box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+    }
+
+    .btn-download:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+    }
+
+    .btn-new-quiz {
+        background: linear-gradient(to right, #00c9a7, #0db4e2);
+        color: white;
+        box-shadow: 0 5px 15px rgba(0, 201, 167, 0.3);
+    }
+
+    .btn-new-quiz:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 201, 167, 0.4);
+    }
+
+    .quiz-card {
+        border: none;
+        border-radius: 20px; 
+        background: linear-gradient(145deg, #2d2b3a, #3a3852); 
+        color: white;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+    .action-buttons a {
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="quiz-card shadow-lg animate__animated animate__fadeInUp">
+                <div class="card-header border-0 bg-transparent">
+                    <h2 class="text-center mb-0">{{ quiz_title }}</h2>
+                </div>
+
+                <div class="card-body p-5">
+                    <div id="quiz-container">
+                        <div class="question-header">
+                            <div class="question-number">
+                                <i class="fas fa-question-circle me-2"></i>Question <span id="current-question-num">1</span>
+                            </div>
+                            <div class="question-progress-wrap">
+                                <div class="question-progress-badge" id="question-progress">1/{{ total_questions }}</div>
+                            </div>
+                        </div>
+
+                        <div class="question-text-container">
+                            <div id="question-text" class="quiz-question">
+                                {{ quiz.0.question }}
+                            </div>
+                        </div>
+
+                        <div id="options-container" class="quiz-options">
+                            {% for option in quiz.0.options %}
+                            <div class="form-check option-item animate__animated animate__fadeIn">
+                                <input class="form-check-input" type="radio" name="quiz-option"
+                                    id="option-{{ forloop.counter0 }}" value="{{ option.0 }}">
+                                <label class="form-check-label w-100" for="option-{{ forloop.counter0 }}">
+                                    {{ option }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button id="next-btn" class="btn btn-lg">
+                                <i class="fas fa-arrow-right me-2"></i>Next Question
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="results-container" style="display: none;">
+                        <div id="confetti-container" class="confetti-container"></div>
+                        
+                        <h2 class="text-center mb-4 animate__animated animate__fadeInDown">Quiz Completed!</h2>
+                        
+                        <div class="score-container animate__animated animate__fadeIn">
+                            <h3 class="score-title">Your Score</h3>
+                            
+                            <div class="score-circle">
+                                <div class="score-value">
+                                    <span id="score">0</span><span class="score-divider">/</span><span id="total">0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="score-gauge">
+                                <div id="score-bar" class="score-gauge-fill" style="width: 0%;"></div>
+                            </div>
+                            
+                            <div class="score-percentage">
+                                <span id="score-percentage">0%</span>
+                            </div>
+                            
+                            <div id="score-message" class="score-message"></div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <a id="download-btn" href="#" class="action-btn btn-download">
+                                <i class="fas fa-download me-2"></i>Download Results
+                            </a>
+                            <a href="{% url 'quizai:generate' %}" class="action-btn btn-new-quiz">
+                                <i class="fas fa-plus me-2"></i>Create New Quiz
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Use json_script to properly serialize the quiz data #}
+{{ quiz|json_script:"quiz-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Get quiz data from the properly serialized element
+    const quizData = JSON.parse(document.getElementById('quiz-data').textContent);
+    let currentQuestionIndex = 0;
+    let userAnswers = new Array(quizData.length).fill(null);
+
+    // DOM elements
+    const quizContainer = document.getElementById('quiz-container');
+    const resultsContainer = document.getElementById('results-container');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const currentQuestionNum = document.getElementById('current-question-num');
+    const totalQuestions = document.getElementById('total-questions');
+    const questionProgress = document.getElementById('question-progress');
+    const nextBtn = document.getElementById('next-btn');
+
+    // Handle next button click
+    nextBtn.addEventListener('click', () => {
+        saveAnswer();
+        goToNextQuestion();
+    });
+
+    // Save the current answer
+    function saveAnswer() {
+        const selectedOption = document.querySelector('input[name="quiz-option"]:checked');
+        if (selectedOption) {
+            userAnswers[currentQuestionIndex] = selectedOption.value;
+        }
+    }
+
+    // Go to the next question or finish the quiz
+    function goToNextQuestion() {
+        // Save the current answer
+        saveAnswer();
+
+        // Send the answer to the server
+        fetch('{% url "quizai:next_question" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                answer: userAnswers[currentQuestionIndex],
+                question_index: currentQuestionIndex
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.completed) {
+                    finishQuiz();
+                    return;
+                }
+
+                // Update the question index
+                currentQuestionIndex++;
+
+                if (currentQuestionIndex >= quizData.length) {
+                    finishQuiz();
+                    return;
+                }
+
+                // Animate question transition
+                const questionContainer = document.querySelector('.question-text-container');
+                questionContainer.style.opacity = '0';
+                questionContainer.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    // Display the next question
+                    displayQuestion(quizData[currentQuestionIndex]);
+                    
+                    // Animate question appearance
+                    questionContainer.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    questionContainer.style.opacity = '1';
+                    questionContainer.style.transform = 'translateY(0)';
+                }, 300);
+
+                // Update progress
+                currentQuestionNum.textContent = currentQuestionIndex + 1;
+                questionProgress.textContent = `${currentQuestionIndex + 1}/${quizData.length}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your answer. Please try again.');
+            });
+    }
+
+    // Display a question
+    function displayQuestion(question) {
+        // Update the question text
+        questionText.textContent = question.question;
+
+        // Clear previous options
+        optionsContainer.innerHTML = '';
+
+        // Add the new options
+        question.options.forEach((option, index) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'form-check option-item animate__animated animate__fadeIn';
+            
+            // Add animation delay based on index
+            optionDiv.style.animationDelay = `${index * 0.1}s`;
+
+            // Extract the option letter (A, B, C, or D)
+            let optionValue = '';
+            if (typeof option === 'string' && option.length > 0) {
+                optionValue = option.charAt(0);
+                if (optionValue === 'A' || optionValue === 'B' || optionValue === 'C' || optionValue === 'D') {
+                    // Valid option
+                } else {
+                    // Use index to determine option letter
+                    optionValue = String.fromCharCode(65 + index); // A, B, C, D...
+                }
+            } else {
+                // Fallback to index
+                optionValue = String.fromCharCode(65 + index); // A, B, C, D...
+            }
+
+            // Add option letter at the beginning
+            const optionLetterDisplay = String.fromCharCode(65 + index); // A, B, C, D...
+            
+            optionDiv.innerHTML = `
+                <input class="form-check-input" type="radio" name="quiz-option" id="option-${index}" value="${optionValue}">
+                <label class="form-check-label w-100" for="option-${index}">
+                    <span class="option-letter" style="font-weight: bold; color: #4a6bff; margin-right: 8px;">${optionLetterDisplay}.</span> 
+                    ${option}
+                </label>
+            `;
+
+            optionsContainer.appendChild(optionDiv);
+        });
+
+        // If it's the last question, change the button text
+        if (currentQuestionIndex === quizData.length - 1) {
+            nextBtn.innerHTML = '<i class="fas fa-flag-checkered me-2"></i>Finish Quiz';
+        } else {
+            nextBtn.innerHTML = '<i class="fas fa-arrow-right me-2"></i>Next Question';
+        }
+    }
+
+    // Create confetti
+    function createConfetti() {
+        const confettiContainer = document.getElementById('confetti-container');
+        const colors = ['#4a6bff', '#00c9a7', '#ffc107', '#ff6b6b', '#a5b4fc', '#9c27b0'];
+        
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.top = -10 + 'px';
+            confetti.style.width = Math.random() * 10 + 5 + 'px';
+            confetti.style.height = Math.random() * 10 + 5 + 'px';
+            confetti.style.opacity = Math.random() + 0.5;
+            confetti.style.animation = `confetti ${Math.random() * 3 + 2}s linear forwards ${Math.random() * 2}s`;
+            
+            confettiContainer.appendChild(confetti);
+        }
+        
+        // Remove confetti after animation completes
+        setTimeout(() => {
+            confettiContainer.innerHTML = '';
+        }, 5000);
+    }
+    
+    // Get message based on score
+    function getScoreMessage(percentage) {
+        if (percentage >= 90) {
+            return 'Outstanding! You are a quiz master! 🏆';
+        } else if (percentage >= 75) {
+            return 'Great job! Excellent knowledge! 🌟';
+        } else if (percentage >= 60) {
+            return 'Good work! Keep it up! 👍';
+        } else if (percentage >= 40) {
+            return 'Nice try! Room for improvement. 📚';
+        } else {
+            return 'Keep learning! Try again soon. 💪';
+        }
+    }
+
+    // Finish the quiz and display results
+    function finishQuiz() {
+        // Send the final result to the server
+        fetch('{% url "quizai:finish_quiz" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({})
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide the quiz container
+                quizContainer.style.display = 'none';
+
+                // Show the results container
+                resultsContainer.style.display = 'block';
+
+                // Update the score
+                document.getElementById('score').textContent = data.score;
+                document.getElementById('total').textContent = data.total;
+
+                // Calculate and update percentage
+                const scorePercentage = (data.score / data.total) * 100;
+                const roundedPercentage = Math.round(scorePercentage);
+                document.getElementById('score-percentage').textContent = `${roundedPercentage}%`;
+                
+                // Update score message
+                document.getElementById('score-message').textContent = getScoreMessage(scorePercentage);
+
+                // Update the score bar with appropriate color
+                const scoreBar = document.getElementById('score-bar');
+                
+                // Set color based on score
+                let scoreColor;
+                if (scorePercentage >= 75) {
+                    scoreColor = 'linear-gradient(to right, #00c9a7, #00e676)'; // Green
+                } else if (scorePercentage >= 50) {
+                    scoreColor = 'linear-gradient(to right, #ffc107, #ffab00)'; // Yellow
+                } else {
+                    scoreColor = 'linear-gradient(to right, #ff6b6b, #ff4757)'; // Red
+                }
+                
+                scoreBar.style.background = scoreColor;
+                scoreBar.style.width = `${scorePercentage}%`;
+                
+                // Create confetti effect if score is good
+                if (scorePercentage >= 60) {
+                    createConfetti();
+                }
+
+                // Set the download button
+                const downloadBtn = document.getElementById('download-btn');
+
+                if (data.file_url) {
+                    downloadBtn.href = data.file_url;
+                    downloadBtn.target = "_blank"; // Open in new tab
+
+                    // Update button text based on file type
+                    if (data.file_type === 'pdf') {
+                        downloadBtn.innerHTML = "<i class='fas fa-file-pdf me-2'></i>Download Quiz PDF";
+                    } else if (data.file_type === 'html') {
+                        downloadBtn.innerHTML = "<i class='fas fa-file-code me-2'></i>View Quiz Results";
+                    } else {
+                        downloadBtn.innerHTML = "<i class='fas fa-download me-2'></i>Download Quiz Results";
+                    }
+
+                    console.log(`Download URL set to: ${data.file_url} (${data.file_type})`);
+                } else {
+                    console.log("No download URL provided");
+                    downloadBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        // Make a direct request to download endpoint
+                        window.location.href = "{% url 'quizai:download_quiz' %}";
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while finishing the quiz. Please try again.');
+            });
+    }
+
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

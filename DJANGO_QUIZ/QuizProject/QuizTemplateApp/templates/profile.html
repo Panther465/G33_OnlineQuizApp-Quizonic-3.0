@@ -1,0 +1,1205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div id="particles-js"></div>
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <!-- Left Column - User Profile and Challenge Form -->
+        <div class="col-md-4">
+            <!-- Profile Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">My Profile</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="position-relative mb-4 profile-pic-container">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="Profile Picture" class="profile-img"
+                        style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                    <img src="{% static 'images/default-avatar.png' %}" alt="Default Profile Picture"
+                            class="profile-img" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% endif %}
+                        <div class="profile-pic-edit">
+                            <button type="button" class="btn btn-sm btn-primary rounded-circle" data-bs-toggle="modal" data-bs-target="#profilePictureModal">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <h4 class="text-light mb-1">{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-user-edit me-1"></i> Edit Profile
+                        </button>
+                        <a href="{% url 'quiz:change_password' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-key me-1"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h6 class="mb-0">{{ user.profile.total_points }}</h6>
+                            <small class="text-muted">Points</small>
+                        </div>
+                        <div class="col-4">
+                            <h6 class="mb-0">{{ user.profile.quizzes_taken }}</h6>
+                            <small class="text-muted">Quizzes</small>
+                        </div>
+                        <div class="col-4">
+                            <h6 class="mb-0">{{ user.profile.quizzes_created }}</h6>
+                            <small class="text-muted">Created</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Challenge Card -->
+            <div class="card mt-4 challenge-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Challenge a Friend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="challenge-intro mb-3">
+                        <div class="challenge-icon">
+                            <i class="fas fa-gamepad fa-2x"></i>
+                        </div>
+                        <p class="challenge-text">Test your friends' knowledge by challenging them to take a quiz!</p>
+                    </div>
+                    <form method="post" action="{% url 'quiz:profile' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="challenge_form" value="1">
+                        
+                        <div class="mb-3 challenge-field">
+                            <label for="id_receiver_username" class="form-label">Friend's Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user-friends"></i></span>
+                                {{ challenge_form.receiver_username }}
+                            </div>
+                            {% if challenge_form.receiver_username.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ challenge_form.receiver_username.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text small">{{ challenge_form.receiver_username.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3 challenge-field">
+                            <label for="id_quiz" class="form-label">Select Quiz</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-question-circle"></i></span>
+                                {{ challenge_form.quiz }}
+                            </div>
+                            {% if challenge_form.quiz.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ challenge_form.quiz.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3 challenge-field">
+                            <label for="id_message" class="form-label">Personal Message</label>
+                            <div class="message-wrapper pulse-focus">
+                                {{ challenge_form.message }}
+                            </div>
+                            {% if challenge_form.message.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ challenge_form.message.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-challenge">
+                                <i class="fas fa-paper-plane me-2"></i> Send Challenge
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Profile Information and Challenges -->
+        <div class="col-md-8">
+            <!-- User Information Card -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0"><i class="fas fa-user me-2"></i>Username</h6>
+                        </div>
+                        <div class="col-sm-9 text-light">
+                            {{ user.username }}
+                        </div>
+                    </div>
+                    <hr class="bg-light opacity-10">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0"><i class="fas fa-envelope me-2"></i>Email</h6>
+                        </div>
+                        <div class="col-sm-9 text-light">
+                            {{ user.email }}
+                        </div>
+                    </div>
+                    <hr class="bg-light opacity-10">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Member Since</h6>
+                        </div>
+                        <div class="col-sm-9 text-light">
+                            {{ user.date_joined|date:"F Y" }}
+                        </div>
+                    </div>
+                    {% if user.profile.bio %}
+                    <hr class="bg-light opacity-10">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Bio</h6>
+                        </div>
+                        <div class="col-sm-9 text-light">
+                            {{ user.profile.bio }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Achievements Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Achievements</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.profile.achievements.all %}
+                    <div class="row">
+                        {% for achievement in user.profile.achievements.all %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="{{ achievement.icon }} fa-2x text-primary mb-3"></i>
+                                    <h6 class="card-title">{{ achievement.name }}</h6>
+                                    <p class="card-text small text-muted">{{ achievement.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-award fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No achievements yet. Keep taking quizzes to earn badges!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Tabs for Challenges -->
+            <div class="card mt-4">
+                <div class="card-header p-0">
+                    <ul class="nav nav-tabs card-header-tabs" id="challenge-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active tab-underline" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button" role="tab" aria-controls="received" aria-selected="true">
+                                <i class="fas fa-inbox me-2"></i>Received
+                                {% if received_challenges.count > 0 %}
+                                <span class="badge bg-danger rounded-pill ms-2">{{ received_challenges.count }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link tab-underline" id="sent-tab" data-bs-toggle="tab" data-bs-target="#sent" type="button" role="tab" aria-controls="sent" aria-selected="false">
+                                <i class="fas fa-paper-plane me-2"></i>Sent
+                                {% if sent_challenges.count > 0 %}
+                                <span class="badge bg-secondary rounded-pill ms-2">{{ sent_challenges.count }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="challenge-tabs-content">
+                        <!-- Received Challenges Tab -->
+                        <div class="tab-pane fade show active" id="received" role="tabpanel" aria-labelledby="received-tab">
+                            {% if received_challenges %}
+                            <div class="challenge-cards">
+                                <div class="row">
+                                {% for challenge in received_challenges %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card challenge-card h-100 {% if challenge.status == 'pending' %}border-warning{% elif challenge.status == 'accepted' %}border-success{% elif challenge.status == 'declined' %}border-danger{% endif %}">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-circle bg-primary me-2">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <h6 class="mb-0">{{ challenge.sender.username }}</h6>
+                                                </div>
+                                                <span class="badge {% if challenge.status == 'pending' %}bg-warning{% elif challenge.status == 'accepted' %}bg-success{% elif challenge.status == 'declined' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                    <i class="fas {% if challenge.status == 'pending' %}fa-clock{% elif challenge.status == 'accepted' %}fa-check-circle{% elif challenge.status == 'declined' %}fa-times-circle{% else %}fa-question-circle{% endif %} me-1"></i>
+                                                    {{ challenge.status|title }}
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="challenge-details mb-3">
+                                                <div class="quiz-detail d-flex align-items-center mb-2">
+                                                    <div class="detail-icon me-2 text-primary">
+                                                        <i class="fas fa-book"></i>
+                                                    </div>
+                                                    <div class="detail-text">{{ challenge.quiz.title }}</div>
+                                                </div>
+                                                
+                                                {% if challenge.message %}
+                                                <div class="message-detail d-flex align-items-start mb-2">
+                                                    <div class="detail-icon me-2 text-primary">
+                                                        <i class="fas fa-comment"></i>
+                                                    </div>
+                                                    <div class="detail-text font-italic">
+                                                        "{{ challenge.message }}"
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                <div class="date-detail d-flex align-items-center text-muted small">
+                                                    <div class="detail-icon me-2">
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                    </div>
+                                                    <div class="detail-text">{{ challenge.created_at|date:"F d, Y" }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if challenge.status == 'pending' %}
+                                            <div class="d-flex" style="z-index: 10; position: relative;">
+                                                <a href="{% url 'quiz:accept_challenge' challenge.id %}" class="btn btn-success btn-sm me-2 flex-grow-1" style="text-decoration: none;">
+                                                    <i class="fas fa-check me-1"></i> Accept
+                                                </a>
+                                                <a href="{% url 'quiz:decline_challenge' challenge.id %}" class="btn btn-danger btn-sm flex-grow-1" style="text-decoration: none;">
+                                                    <i class="fas fa-times me-1"></i> Decline
+                                                </a>
+                                            </div>
+                                            {% elif challenge.status == 'accepted' %}
+                                            <a href="{% url 'quiz:take_challenge' challenge.id %}" class="btn btn-primary btn-sm d-block" style="z-index: 10; position: relative; text-decoration: none;">
+                                                <i class="fas fa-play me-1"></i> Take Quiz
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 empty-challenges-container">
+                                <div class="empty-icon-container">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                </div>
+                                <p class="text-muted">You haven't received any challenges yet.</p>
+                                <p class="text-muted small">When friends challenge you, they'll appear here.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Sent Challenges Tab -->
+                        <div class="tab-pane fade" id="sent" role="tabpanel" aria-labelledby="sent-tab">
+                            {% if sent_challenges %}
+                            <div class="challenge-cards">
+                                <div class="row">
+                                {% for challenge in sent_challenges %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card challenge-card h-100 {% if challenge.status == 'pending' %}border-warning{% elif challenge.status == 'accepted' %}border-success{% elif challenge.status == 'declined' %}border-danger{% endif %}">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-circle bg-secondary me-2">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <h6 class="mb-0">{{ challenge.receiver.username }}</h6>
+                                                </div>
+                                                <span class="badge {% if challenge.status == 'pending' %}bg-warning{% elif challenge.status == 'accepted' %}bg-success{% elif challenge.status == 'declined' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                    <i class="fas {% if challenge.status == 'pending' %}fa-clock{% elif challenge.status == 'accepted' %}fa-check-circle{% elif challenge.status == 'declined' %}fa-times-circle{% else %}fa-question-circle{% endif %} me-1"></i>
+                                                    {{ challenge.status|title }}
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="challenge-details mb-2">
+                                                <div class="quiz-detail d-flex align-items-center mb-2">
+                                                    <div class="detail-icon me-2 text-primary">
+                                                        <i class="fas fa-book"></i>
+                                                    </div>
+                                                    <div class="detail-text">{{ challenge.quiz.title }}</div>
+                                                </div>
+                                                
+                                                {% if challenge.message %}
+                                                <div class="message-detail d-flex align-items-start mb-2">
+                                                    <div class="detail-icon me-2 text-primary">
+                                                        <i class="fas fa-comment"></i>
+                                                    </div>
+                                                    <div class="detail-text font-italic">
+                                                        "{{ challenge.message }}"
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                <div class="date-detail d-flex align-items-center text-muted small">
+                                                    <div class="detail-icon me-2">
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                    </div>
+                                                    <div class="detail-text">{{ challenge.created_at|date:"F d, Y" }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 empty-challenges-container">
+                                <div class="empty-icon-container">
+                                    <i class="fas fa-paper-plane fa-3x text-muted mb-3"></i>
+                                </div>
+                                <p class="text-muted">You haven't sent any challenges yet.</p>
+                                <p class="text-muted small">Use the form to challenge your friends to a quiz.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'quiz:profile' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="profile_form" value="1">
+                    
+                    <div class="mb-3">
+                        <label for="id_bio" class="form-label">Bio</label>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.bio.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Picture Modal -->
+<div class="modal fade" id="profilePictureModal" tabindex="-1" aria-labelledby="profilePictureModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profilePictureModalLabel">Change Profile Picture</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'quiz:profile' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="profile_form" value="1">
+                    
+                    <div class="mb-3">
+                        <label for="id_avatar" class="form-label">Upload Image</label>
+                        {{ form.avatar }}
+                        {% if form.avatar.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.avatar.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text small">Select an image file to upload as your profile picture.</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Upload & Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+      --primary: #4a6bff;
+      --secondary: #00c9a7;
+      --dark: #1a1a2e;
+      --light: #f8f9fa;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --darker: #0f0f1a;
+      --card-bg: rgba(34, 34, 59, 0.8);
+    }
+    
+    body {
+        background-color: var(--dark);
+        color: var(--light);
+        perspective: 1000px;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+    
+    #particles-js {
+        position: fixed;
+        width: 100%;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: -1;
+    }
+    
+    .profile-pic-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .profile-pic-edit {
+        position: absolute;
+        right: 5px;
+        bottom: 0;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        background-color: var(--card-bg);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: var(--light);
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-5px) rotateX(3deg);
+        box-shadow: 0 15px 30px rgba(74, 107, 255, 0.15);
+    }
+
+    .card-header {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: var(--light);
+    }
+
+    .card-footer {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .form-control, .form-select {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--light);
+    }
+
+    .form-control:focus, .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.25rem rgba(74, 107, 255, 0.25);
+        color: var(--light);
+    }
+    
+    /* Badge styling */
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.75em;
+    }
+   
+    
+    /* Button styling */
+    .btn-primary {
+        background: linear-gradient(to right, var(--primary), #6a5cff);
+        border: none;
+        box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+        background: linear-gradient(to right, #5a7bff, var(--primary));
+    }
+
+    .btn-outline-primary {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .btn-outline-secondary {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--light);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    
+    /* Tab styling */
+    .tab-underline {
+        position: relative;
+        color: var(--light);
+    }
+
+    .tab-underline::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        transform: scaleX(0);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .tab-underline.active::after {
+        transform: scaleX(1);
+    }
+
+    .nav-tabs {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: transparent;
+        border-color: transparent;
+        color: var(--primary);
+    }
+
+    .list-group-item {
+        background-color: transparent;
+        border-color: rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        transform: translateX(5px);
+    }
+    
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.4s ease;
+    }
+
+    .profile-img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(74, 107, 255, 0.3);
+    }
+    
+    hr.opacity-10 {
+        opacity: 0.1;
+    }
+    
+    .table {
+        color: var(--light);
+    }
+    
+    .modal-content {
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .text-muted {
+        --bs-text-opacity: 1;
+        color: #a0a8bd !important;
+    }
+    
+    /* Fix input group styles */
+    .input-group-text {
+        background-color: rgba(74, 107, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--primary);
+    }
+    
+    .input-group .form-control {
+        color: var(--light);
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+    
+    /* Challenge Card Styling to match dashboard */
+    .challenge-card {
+        position: relative;
+        overflow: hidden;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .challenge-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at top right, 
+                              rgba(74, 107, 255, 0.15) 0%, 
+                              transparent 70%);
+        z-index: 0;
+    }
+    
+    .challenge-intro {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+
+    
+    .challenge-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), #6a5cff);
+        color: white;
+        box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(74, 107, 255, 0.5);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(74, 107, 255, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(74, 107, 255, 0);
+        }
+    }
+    
+    .challenge-text {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--light);
+    }
+    
+    .challenge-field {
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+    
+    .challenge-field:hover {
+        transform: translateX(5px);
+    }
+    
+    .challenge-field label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: block;
+        transition: all 0.3s ease;
+        color: var(--secondary);
+    }
+    
+    .pulse-focus:focus-within {
+        box-shadow: 0 0 0 3px rgba(74, 107, 255, 0.25);
+        border-radius: 5px;
+  ;
+    }
+    
+    .message-wrapper {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-challenge {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.5s ease;
+        z-index: 1;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-challenge::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+                            rgba(255, 255, 255, 0.2), 
+                            rgba(255, 255, 255, 0));
+        transition: all 0.5s ease;
+        z-index: -1;
+    }
+    
+    .btn-challenge:hover::before {
+        left: 100%;
+    }
+    .form-text {
+    
+    color: rgb(253 254 255 / 57%);
+    }
+    button, input, optgroup, select, textarea {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    background: #0000;
+    border:none;
+    border-radius: 5px;
+}
+    
+    /* Challenge Table Styling to match dashboard */
+    .challenge-table-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        background-color: var(--card-bg);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .challenge-table {
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+    
+    .challenge-table thead {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .challenge-table th {
+        border: none;
+        font-weight: 600;
+        padding: 15px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+    
+    .challenge-table tbody {
+        background-color: transparent;
+    }
+    
+    .challenge-table td {
+        padding: 12px 15px;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: var(--light);
+        vertical-align: middle;
+    }
+    
+    .challenge-row {
+        position: relative;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .challenge-row:last-child td {
+        border-bottom: none;
+    }
+    
+    .challenge-row:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+        transform: translateY(-3px) scale(1.01);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+    
+    .challenge-pending {
+        position: relative;
+    }
+    
+    .challenge-pending::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: linear-gradient(to bottom, var(--warning), transparent);
+    }
+    
+    .challenge-accepted {
+        position: relative;
+    }
+    
+    .challenge-accepted::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: linear-gradient(to bottom, var(--success), transparent);
+    }
+    
+    .challenge-declined {
+        position: relative;
+    }
+    
+    .challenge-declined::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: linear-gradient(to bottom, var(--danger), transparent);
+    }
+    
+    .sender-avatar, .quiz-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(74, 107, 255, 0.1), rgba(0, 201, 167, 0.1));
+        color: var(--primary);
+        margin-right: 10px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .sender-avatar::after, .quiz-icon::after {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 65%);
+        opacity: 0.6;
+    }
+    
+    .quiz-icon {
+        background: linear-gradient(135deg, rgba(0, 201, 167, 0.1), rgba(74, 107, 255, 0.1));
+        color: var(--secondary);
+    }
+    
+    .quiz-title-cell, .message-cell, .date-cell {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+    
+    .message-cell {
+        max-width: 200px;
+        position: relative;
+    }
+    
+    .message-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        display: block;
+        transition: all 0.3s ease;
+        color: rgba(255, 255, 255, 0.8);
+        padding: 5px;
+        border-radius: 4px;
+    }
+    
+    .message-text:hover {
+        white-space: normal;
+        overflow: visible;
+        background-color: rgba(74, 107, 255, 0.1);
+        position: absolute;
+        z-index: 10;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        max-width: 300px;
+        backdrop-filter: blur(5px);
+    }
+    
+    .date-cell {
+        font-size: 0.85rem;
+        color: var(--primary);
+        opacity: 0.8;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        min-width: 100px;
+        justify-content: center;
+    }
+    
+    .bg-warning {
+        background: linear-gradient(45deg, #ffc107, #ffae00) !important;
+    }
+    
+    .bg-success {
+        background: linear-gradient(45deg, #28a745, #20c997) !important;
+    }
+    
+    .bg-danger {
+        background: linear-gradient(45deg, #dc3545, #ff4757) !important;
+    }
+    
+    .bg-secondary {
+        background: linear-gradient(45deg, #6c757d, #495057) !important;
+    }
+    
+    .action-buttons {
+        transition: all 0.3s ease;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-action {
+        border-radius: 20px;
+        font-weight: 500;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 0.375rem 1rem;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-action::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
+        transition: all 0.5s ease;
+    }
+    
+    .btn-action:hover::before {
+        left: 100%;
+    }
+    
+    .btn-success.btn-action {
+        background: linear-gradient(45deg, #28a745, #20c997);
+    }
+    
+    .btn-danger.btn-action {
+        background: linear-gradient(45deg, #dc3545, #ff4757);
+    }
+    
+    .btn-primary.btn-action {
+        background: linear-gradient(45deg, var(--primary), #6a5cff);
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .empty-challenges-container {
+        padding: 50px 20px;
+        background: linear-gradient(135deg, rgba(74, 107, 255, 0.05), rgba(0, 201, 167, 0.05));
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(5px);
+    }
+    
+    .empty-icon-container {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(74, 107, 255, 0.1), rgba(0, 201, 167, 0.1));
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .empty-icon-container::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 65%);
+        animation: rotate 10s linear infinite;
+    }
+    
+    button, input, optgroup, select, textarea {
+        margin: 0;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        background:#1a1a2d;
+        color: white;
+    }
+   
+    @keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<!-- Particle.js -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 80,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#4a6bff"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    }
+                },
+                "opacity": {
+                    "value": 0.3,
+                    "random": false,
+                    "anim": {
+                        "enable": false,
+                        "speed": 1,
+                        "opacity_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                    "anim": {
+                        "enable": false,
+                        "speed": 40,
+                        "size_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#4a6bff",
+                    "opacity": 0.2,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 2,
+                    "direction": "none",
+                    "random": false,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                    "attract": {
+                        "enable": false,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 0.4
+                        }
+                    },
+                    "bubble": {
+                        "distance": 400,
+                        "size": 40,
+                        "duration": 2,
+                        "opacity": 8,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 200,
+                        "duration": 0.4
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+    });
+</script>
+{% endblock %}

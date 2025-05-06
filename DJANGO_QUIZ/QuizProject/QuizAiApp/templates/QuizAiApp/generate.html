@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Quiz - AI Quiz Generator{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #4a6bff;
+    --secondary: #00c9a7;
+    --dark: #1a1a2e;
+    --light: #f8f9fa;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --darker: #0f0f1a;
+    --card-bg: rgba(34, 34, 59, 0.8);
+  }
+
+  body {
+    background-color: var(--dark);
+    color: var(--light);
+    perspective: 1000px;
+    min-height: 100vh;
+  }
+
+  #particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
+
+  .floating {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(1deg);
+    }
+  }
+
+  .quiz-card {
+    border: none;
+    border-radius: 16px;
+    background-color: var(--card-bg);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--light);
+    overflow: hidden;
+    transform-style: preserve-3d;
+  }
+
+  .quiz-card:hover {
+    transform: translateY(-5px) rotateX(2deg);
+    box-shadow: 0 25px 40px rgba(74, 107, 255, 0.2);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, rgba(74, 107, 255, 0.15), rgba(0, 201, 167, 0.05)) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(74, 107, 255, 0.15), transparent 70%);
+    transform: rotate(30deg);
+    z-index: 0;
+  }
+
+  .card-header h2 {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    background: linear-gradient(to right, #fff, #a5b4fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #a5b4fc;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-control, .form-select {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus, .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(74, 107, 255, 0.25);
+    color: white;
+  }
+
+  .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .form-range::-webkit-slider-thumb {
+    background: var(--primary);
+    box-shadow: 0 0 10px rgba(74, 107, 255, 0.5);
+  }
+
+  .difficulty-options {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .difficulty-option {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .difficulty-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+  }
+
+  .difficulty-option.selected {
+    border-color: var(--primary);
+    background: rgba(74, 107, 255, 0.1);
+  }
+
+  .question-count {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, rgba(74, 107, 255, 0.2), rgba(0, 201, 167, 0.2));
+    border-radius: 12px;
+    font-weight: 700;
+    color: white;
+    margin-left: 0.5rem;
+  }
+
+  .btn-primary {
+    background: linear-gradient(to right, var(--primary), #6a5cff);
+    border: none;
+    box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+    transition: all 0.3s ease;
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 12px;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+    background: linear-gradient(to right, #5a7bff, var(--primary));
+  }
+
+  .btn-outline-secondary {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+
+  #loading {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="quiz-card shadow">
+                <div class="card-header">
+                    <h2 class="mb-0 floating text-center">AI Quiz Generator</h2>
+                </div>
+                <div class="card-body">
+                   
+                    
+                    <form method="POST" action="{% url 'quizai:generate' %}" id="quiz-form">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="topic" class="form-label">
+                                <i class="fas fa-lightbulb me-2"></i>Quiz Topic
+                            </label>
+                            <input type="text" class="form-control" id="topic" name="topic" required
+                                placeholder="Enter quiz topic (e.g., Ancient Egypt, Basic Mathematics, World Geography)">
+                            <div class="form-text text-muted">Be specific for better results</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="num_questions" class="form-label">
+                                <i class="fas fa-list-ol me-2"></i>Number of Questions
+                                <span class="question-count" id="question-count">5</span>
+                            </label>
+                            <input type="range" class="form-range" id="num_questions" name="num_questions" min="3"
+                                max="15" value="5">
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">3</small>
+                                <small class="text-muted">15</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-sliders-h me-2"></i>Difficulty Level
+                            </label>
+                            <div class="difficulty-options">
+                                <div class="difficulty-option" data-value="easy">
+                                    <i class="fas fa-feather mb-2" style="color: var(--success);"></i>
+                                    <h6 class="mb-0">Easy</h6>
+                                </div>
+                                <div class="difficulty-option selected" data-value="medium">
+                                    <i class="fas fa-balance-scale mb-2" style="color: var(--primary);"></i>
+                                    <h6 class="mb-0">Medium</h6>
+                                </div>
+                                <div class="difficulty-option" data-value="hard">
+                                    <i class="fas fa-fire mb-2" style="color: var(--danger);"></i>
+                                    <h6 class="mb-0">Hard</h6>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden radio buttons -->
+                            <div class="d-none">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="difficulty" id="difficulty-easy"
+                                        value="easy">
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="difficulty"
+                                        id="difficulty-medium" value="medium" checked>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="difficulty" id="difficulty-hard"
+                                        value="hard">
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="use_fallback" id="use_fallback" value="false">
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-robot me-2"></i>Generate Quiz with AI
+                            </button>
+                            <button type="button" id="use-sample-btn" class="btn btn-outline-secondary">
+                                <i class="fas fa-bolt me-2"></i>Use Sample Quiz Instead
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="loading" class="text-center py-4 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Generating your quiz... This may take a few seconds.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize particles.js
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: '#4a6bff' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.1, random: true },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: '#4a6bff', opacity: 0.1, width: 1 },
+                move: { enable: true, speed: 1, direction: 'none', random: true, straight: false, out_mode: 'out' }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+                modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+            },
+            retina_detect: true
+        });
+        
+        // Update question count display
+        const questionRange = document.getElementById('num_questions');
+        const questionCount = document.getElementById('question-count');
+        
+        questionRange.addEventListener('input', function() {
+            questionCount.textContent = this.value;
+        });
+        
+        // Difficulty selection
+        const difficultyOptions = document.querySelectorAll('.difficulty-option');
+        difficultyOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                difficultyOptions.forEach(opt => opt.classList.remove('selected'));
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                // Set the hidden radio button value
+                const difficulty = this.getAttribute('data-value');
+                document.getElementById(`difficulty-${difficulty}`).checked = true;
+            });
+        });
+
+        // Show loading indicator on form submission
+        document.getElementById('quiz-form').addEventListener('submit', function(e) {
+            // Validate form first
+            const topic = document.getElementById('topic').value.trim();
+            if (!topic) {
+                e.preventDefault();
+                alert('Please enter a quiz topic');
+                return;
+            }
+
+            // Hide form and show loading
+            this.classList.add('d-none');
+            document.getElementById('loading').classList.remove('d-none');
+        });
+        
+        // Use sample quiz button
+        document.getElementById('use-sample-btn').addEventListener('click', function() {
+            const form = document.getElementById('quiz-form');
+            const topic = document.getElementById('topic').value.trim();
+            
+            if (!topic) {
+                alert('Please enter a quiz topic');
+                return;
+            }
+            
+            // Set the use_fallback flag to true
+            document.getElementById('use_fallback').value = 'true';
+            
+            // Show loading and submit the form
+            form.classList.add('d-none');
+            document.getElementById('loading').classList.remove('d-none');
+            form.submit();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .tobbi-test-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .tobbi-response {
+      background-color: #f9f9f9;
+      border-left: 4px solid #5b80b2;
+      padding: 10px 15px;
+      margin: 15px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .success-message {
+      color: #28a745;
+      font-weight: bold;
+      padding: 10px 15px;
+      background-color: rgba(40, 167, 69, 0.1);
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .error-message {
+      color: #dc3545;
+      font-weight: bold;
+      padding: 10px 15px;
+      background-color: rgba(220, 53, 69, 0.1);
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .warning-message {
+      color: #ffc107;
+      font-weight: bold;
+      padding: 10px 15px;
+      background-color: rgba(255, 193, 7, 0.1);
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .btn-group {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .config-info {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .config-info table {
+      width: 100%;
+    }
+    .config-info td {
+      padding: 5px;
+    }
+    .config-info td:first-child {
+      font-weight: bold;
+      width: 150px;
+    }
+  </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{{ changelist_url }}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; {% trans 'Test TOBBI API Connection' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="tobbi-test-card">
+    <h1>Test TOBBI API Connection</h1>
+    
+    <p>This tool allows you to test if your TOBBI API configuration is working correctly. 
+       Click the button below to send a test request to the API.</p>
+    
+    {% if api_config_exists %}
+    <div class="config-info">
+      <h3>Current Configuration</h3>
+      <table>
+        <tr>
+          <td>API Key:</td>
+          <td>{{ api_key_preview }}</td>
+        </tr>
+        <tr>
+          <td>Base URL:</td>
+          <td>{{ base_url }}</td>
+        </tr>
+        <tr>
+          <td>Model:</td>
+          <td>{{ model }}</td>
+        </tr>
+      </table>
+    </div>
+    {% endif %}
+    
+    {% if warning %}
+      <div class="warning-message">
+        <p><i class="fas fa-exclamation-triangle"></i> {{ warning }}</p>
+        {% if not api_config_exists %}
+        <p>You need to <a href="{{ changelist_url }}add/">create a new TOBBI API configuration</a> before you can test the connection.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+    
+    {% if error %}
+      <div class="error-message">
+        <p><i class="fas fa-times-circle"></i> {{ error }}</p>
+        <ul>
+          <li>Make sure you have created and activated a TOBBI API configuration.</li>
+          <li>Verify that your API key is valid and has not expired.</li>
+          <li>Check that the base URL is correct and accessible.</li>
+          <li>Ensure the model name is valid for the API service you're using.</li>
+        </ul>
+      </div>
+    {% endif %}
+    
+    {% if success %}
+      <div class="success-message">
+        <p><i class="fas fa-check-circle"></i> API connection successful!</p>
+        <p>Model used: <strong>{{ model_used }}</strong></p>
+        <div class="tobbi-response">
+          <p><strong>TOBBI's response:</strong></p>
+          <p>"{{ response }}"</p>
+        </div>
+      </div>
+    {% endif %}
+    
+    <form method="post">
+      {% csrf_token %}
+      <div class="btn-group">
+        <input type="submit" value="Test TOBBI API Connection" class="default">
+        <a href="{{ changelist_url }}" class="button">Return to API Configurations</a>
+        <a href="/admin/" class="button">Return to Admin Home</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} 

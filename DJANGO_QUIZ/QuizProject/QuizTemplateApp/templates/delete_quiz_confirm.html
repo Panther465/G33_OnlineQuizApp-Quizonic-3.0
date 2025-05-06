@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load quiz_extras %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">Delete Quiz</h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> This action cannot be undone! All questions, choices, and attempts associated with this quiz will be permanently deleted.
+          </div>
+          
+          <h5 class="mb-3">Are you sure you want to delete the following quiz?</h5>
+          
+          <div class="quiz-info-box mb-4">
+            <h5>{{ quiz.title }}</h5>
+            <p class="mb-1"><strong>Category:</strong> {{ quiz.category }}</p>
+            <p class="mb-1"><strong>Difficulty:</strong> {{ quiz.difficulty }}</p>
+            <p class="mb-1"><strong>Questions:</strong> {{ quiz.questions.count }}</p>
+            <p class="mb-0"><strong>Created:</strong> {{ quiz.created_at|date:"M d, Y" }}</p>
+          </div>
+          
+          <form method="post" action="{% url 'quiz:delete_quiz' quiz.id %}" class="d-flex justify-content-between">
+            {% csrf_token %}
+            <a href="{% url 'quiz:created_quizzes' %}" class="btn btn-secondary">
+              <i class="fas fa-arrow-left me-2"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-trash me-2"></i> Yes, Delete Quiz
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

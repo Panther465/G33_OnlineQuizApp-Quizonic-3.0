@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Quizonic - 3D Interactive Quiz Platform{% endblock %}</title>
+    {% load static %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --secondary: #00c9a7;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        /* Header Styles */
+        header {
+            background: rgba(13, 18, 42, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 8px 0;
+            /* Further reduced padding to make navbar less tall */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 10;
+            border-radius: 42px;
+            margin-top: 20px;
+            width: 97%;
+            max-width: 1350px;
+            margin-left: auto;
+            margin-right: auto;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .container nav {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+        }
+
+        .logo {
+            grid-column: 1;
+        }
+
+        .logo img {
+            height: 35px;
+            /* Increased size from 40px to 60px */
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            margin-bottom: 5px;
+            margin-left: -15px;
+        }
+
+        /* Float animation removed as requested */
+
+        .nav-links {
+            display: flex;
+            gap: 19px;
+            align-items: center;
+            position: relative;
+            justify-content: center;
+            grid-column: 2;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            overflow: visible;
+        }
+
+        .dropdown-content {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            top: 110%;
+            left: 0;
+            background: rgba(13, 18, 42, 0.95);
+            /* Changed to match navbar theme */
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            z-index: 1;
+            padding: 5px 0;
+            white-space: nowrap;
+        }
+
+        .dropdown-content a {
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            color: #ffffff;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(74, 107, 255, 0.2);
+            border-radius: 20px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: flex;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            /* Smaller font size to match further reduced navbar height */
+            font-weight: 500;
+            padding: 4px 12px;
+            /* Further reduced padding to make links less tall */
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            transition: all 0.4s ease;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-links a:hover:before {
+            width: 80%;
+            opacity: 1;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            /* Align items to the right */
+            align-items: center;
+            /* Center items vertically */
+            grid-column: 3;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: white;
+            color: var(--primary);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger-menu span {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 3px 0;
+            border-radius: 3px;
+        }
+
+        /* Profile styles */
+        .profile-container {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+            /* Changed from margin-right to push it to the right */
+        }
+
+        .profile-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-link:hover {
+            transform: translateY(-3px);
+        }
+
+        .profile-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .profile-link:hover .profile-circle {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-initial {
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .profile-name {
+            display: none;
+            /* Hide the username text */
+        }
+
+        @media (max-width: 992px) {
+            .hamburger-menu {
+                display: flex;
+                grid-column: 3;
+                justify-self: end;
+            }
+
+            .nav-links,
+            .auth-buttons {
+                display: none;
+            }
+
+            .container nav {
+                grid-template-columns: 1fr auto;
+            }
+
+            .logo {
+                grid-column: 1;
+            }
+
+            nav.expanded .nav-links,
+            nav.expanded .auth-buttons {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                padding: 20px;
+                border-radius: 0 0 42px 42px;
+                gap: 15px;
+                align-items: center;
+                grid-column: auto;
+            }
+
+            .container nav.expanded {
+                display: grid;
+            }
+        }
+
+        /* Message Styles */
+        .alert {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 500px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin: 0;
+            opacity: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 15px;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            line-height: 1;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+
+
+        .alert-content {
+            flex-grow: 1;
+        }
+
+        .alert-success {
+            background-color: var(--success);
+            color: white;
+            border: none;
+        }
+
+        .alert-error {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+        }
+
+        .alert-info {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .alert-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+            border: none;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        <div class="alert-content">{{ message }}</div>
+        <button class="alert-close" aria-label="Close message"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% block header %}
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><img src="{% static 'images/logo.png' %}" alt="Quizonic Logo"></div>
+                <div class="hamburger-menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="nav-links">
+                    <a href="{% url 'quiz:home' %}">Home</a>
+                    <a href="{% url 'quiz:random_quiz' %}">Create Quiz</a>
+
+                    <a href="{% url 'quizai:generate' %}">Tobbi AI Quiz</a>
+
+                    <div class="dropdown">
+                        <a href="#">Features ▾</a>
+                        <div class="dropdown-content">
+                            <a href="{% url 'quiz:leaderboard' %}">Leaderboard</a>
+                            <a href="{% url 'quiz:dashboard' %}">Dashboard</a>
+
+                            <a href="{% url 'quiz:help_center' %}">Help Center</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="auth-buttons">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'quiz:logout' %}" class="btn btn-outline"
+                        style="padding: 5px 15px; font-size: 0.9rem; border-radius: 30px; line-height: 2.0; background-color: rgba(220, 53, 69, 0.2); border-color: var(--danger); color: white; text-align: center;">Logout</a>
+                    <div class="profile-container">
+                        <a href="{% url 'quiz:profile' %}" class="profile-link">
+                            <div class="profile-circle">
+                                {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" alt="Profile" class="profile-img">
+                                {% else %}
+                                <div class="profile-initial">{{ user.username|first|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="profile-name">{{ user.username }}</div>
+                        </a>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'quiz:login' %}" class="btn btn-outline">Log In</a>
+                    <a href="{% url 'quiz:register' %}" class="btn btn-primary">Sign Up</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+    </header>
+    {% endblock %}
+
+    <main class="py-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3><img src="{% static 'images/logo.png' %}" alt="Quizonic Logo"
+                            style="height: 45px; width: auto;"></h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'quiz:about' %}">About Us</a></li>
+                        <li><a href="#">Our Team</a></li>
+                        <li><a href="#">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Features</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'quiz:qn' %}">Quiz Categories</a></li>
+                        <li><a href="{% url 'quizai:index' %}">AI Assistant</a></li>
+                        <li><a href="{% url 'quiz:random_quiz' %}">Create Quiz</a></li>
+                        <li><a href="{% url 'quiz:leaderboard' %}">Leaderboards</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'quiz:help_center' %}">Help Center</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="{% url 'quiz:contact' %}">Contact Us</a></li>
+                        <li><a href="#">Feedback</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Copyright</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 <img src="{% static 'images/logo.png' %}" alt="Quizonic Logo"
+                        style="height: 30px; width: auto; vertical-align: middle;">. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Particles.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.hamburger-menu').addEventListener('click', function () {
+            document.querySelector('nav').classList.toggle('expanded');
+        });
+
+        // Message handling
+        function closeMessage(message) {
+            if (message) {
+                message.style.opacity = '0';
+                setTimeout(() => {
+                    message.remove();
+                }, 500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const messages = document.querySelectorAll('.alert');
+
+            messages.forEach(function (message) {
+                const closeButton = message.querySelector('.alert-close');
+
+                // Handle close button click
+                if (closeButton) {
+                    closeButton.onclick = function (e) {
+                        e.preventDefault();
+                        closeMessage(message);
+                    };
+                }
+
+                // Auto-dismiss after 1 second for all message types
+                setTimeout(() => {
+                    closeMessage(message);
+                }, 1000);
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

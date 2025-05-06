@@ -1,0 +1,1022 @@
+{% load static %}
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Login Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --secondary: #00c9a7;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --quiz-accent: #00c9a7;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            perspective: 1000px;
+            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .split-container {
+            background: var(--dark);
+            border-radius: 20px;
+            overflow: visible;
+            max-width: 800px;
+            width: 90%;
+            margin: 0 auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .graphic-side {
+            background: rgba(26, 26, 46, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            min-height: 300px;
+        }
+
+        .feature-icon {
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-icon:hover {
+            transform: translateY(-5px);
+        }
+
+
+
+        .card {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 0;
+            height: 100%;
+            color: var(--light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control {
+            border-radius: 30px !important;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background: rgba(250, 250, 250, 0.389);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--light);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(74, 107, 255, 0.25);
+        }
+
+        .form-label {
+            color: var(--light);
+        }
+
+        .btn {
+            border-radius: 30px !important;
+            padding: 0.35rem 1.2rem;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem !important;
+            color: var(--light);
+            text-shadow: 0 0 10px rgba(74, 107, 255, 0.5);
+        }
+
+        .divider {
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 992px) {
+            .card {
+                margin: 10px;
+                padding: 1rem;
+            }
+
+            .form-control {
+                padding: 0.5rem 0.9rem;
+            }
+
+            .btn {
+                padding: 0.35rem 1rem;
+            }
+        }
+
+        .btn-google {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-google:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-google i {
+            font-size: 18px;
+        }
+
+        .btn-apple {
+            background-color: var(--light);
+            color: var(--dark);
+            border: none;
+        }
+
+        .btn-apple:hover {
+            background-color: #e6e6e6 !important;
+            color: var(--dark) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .login-btn {
+            background-color: var(--secondary);
+            border: none;
+            color: var(--light);
+        }
+
+        .login-btn:hover {
+            background-color: #00b090 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 201, 167, 0.4);
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .or-divider span {
+            padding: 0 15px;
+            font-size: 16px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        a {
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Quiz Animation Styles */
+        .quiz-animation {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .quiz-icon {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .quiz-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--quiz-accent), var(--primary));
+            box-shadow: 0 0 30px rgba(0, 201, 167, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: var(--light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            animation: pulse 2s ease-out infinite;
+        }
+
+        .quiz-text {
+            color: var(--light);
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 201, 167, 0.5);
+        }
+
+        .quiz-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .quiz-subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.7;
+            z-index: 1;
+        }
+
+        .element-1 {
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            top: 60px;
+            left: 40px;
+            animation: float-element 8s infinite;
+        }
+
+        .element-2 {
+            width: 20px;
+            height: 20px;
+            background: var(--secondary);
+            bottom: 80px;
+            right: 60px;
+            animation: float-element 10s infinite 1s;
+        }
+
+        .element-3 {
+            width: 15px;
+            height: 15px;
+            background: var(--quiz-accent);
+            bottom: 40px;
+            left: 80px;
+            animation: float-element 7s infinite 0.5s;
+        }
+
+        .element-4 {
+            width: 25px;
+            height: 25px;
+            background: var(--warning);
+            top: 100px;
+            right: 40px;
+            animation: float-element 9s infinite 1.5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes float-element {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(15px, 15px);
+            }
+
+            50% {
+                transform: translate(0, 30px);
+            }
+
+            75% {
+                transform: translate(-15px, 15px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #orb-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .split-container {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Glowing Orb Styles */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(8px);
+            opacity: 0.6;
+            background: radial-gradient(circle at 30% 30%, var(--primary), transparent 70%);
+            animation: float-orb 25s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float-orb {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            25% {
+                transform: translate(5%, 10%) scale(1.1);
+            }
+
+            50% {
+                transform: translate(10%, 5%) scale(1);
+            }
+
+            75% {
+                transform: translate(5%, -5%) scale(0.9);
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+        }
+
+        /* Add custom orbs dynamically via JS */
+        .google-login-link {
+            text-decoration: none;
+        }
+
+        /* Message Styles */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 500px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin: 0;
+            opacity: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 15px;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        .alert-content {
+            flex-grow: 1;
+        }
+
+        .alert-success {
+            background-color: var(--success);
+            color: white;
+            border: none;
+        }
+
+        .alert-error {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+        }
+
+        .alert-info {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .alert-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-12 col-lg-10 col-xl-9">
+                <div class="split-container">
+                    <div class="row g-0 h-100">
+                        <div class="col-md-5">
+                            <div class="graphic-side">
+                                <div class="text-center position-relative">
+                                    <img src="{% static 'images/logo.png' %}" alt="Quizonic Logo"
+                                        style="height: 45px; width: auto; margin-bottom: 1.5rem;">
+                                    <p class="lead mb-3">Test your knowledge with our interactive quizzes!</p>
+                                    <div class="d-flex justify-content-center">
+                                        <div class="feature-icon me-4">
+                                            <i class="fas fa-brain fa-2x" style="color: var(--secondary);"></i>
+                                            <p class="mt-2">Learn</p>
+                                        </div>
+                                        <div class="feature-icon me-4">
+                                            <i class="fas fa-trophy fa-2x" style="color: var(--primary);"></i>
+                                            <p class="mt-2">Compete</p>
+                                        </div>
+                                        <div class="feature-icon">
+                                            <i class="fas fa-chart-line fa-2x" style="color: var(--warning);"></i>
+                                            <p class="mt-2">Grow</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side (Login Form) -->
+                        <div class="col-md-7">
+                            <div class="card">
+                                <h2 class="text-center mb-3">Login</h2>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-12">
+                                        <a href="{% provider_login_url 'google' %}" class="google-login-link">
+                                            <button
+                                                class="btn btn-google w-100 d-flex align-items-center justify-content-center">
+                                                <i class="fab fa-google me-2"></i>
+                                                Continue with Google
+                                            </button>
+                                        </a>
+                                    </div>
+
+                                </div>
+
+                                <div class="or-divider">
+                                    <span>OR</span>
+                                </div>
+
+                                <form action="{% url 'quiz:login' %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="mb-2">
+                                        <label for="email" class="form-label"><i class="fa-solid fa-envelope"></i>
+                                            Email</label>
+                                        <input type="email" name="email" id="email" class="form-control"
+                                            placeholder="Enter your email" required>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="password" class="form-label"><i class="fa-solid fa-lock"></i>
+                                            Password</label>
+                                        <input type="password" name="password" id="password" class="form-control"
+                                            placeholder="Enter your password" required>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="remember">
+                                            <label class="form-check-label small" for="remember">Remember me</label>
+                                        </div>
+                                        <a href="#" class="small">Forgot Password?</a>
+                                    </div>
+
+                                    <div class="d-grid mb-3">
+                                        <button type="submit" class="btn login-btn">Sign In</button>
+                                    </div>
+                                </form>
+
+                                <p class="text-center mb-0 small">
+                                    Don't have an account? <a href="{% url 'quiz:register' %}"
+                                        class="text-decoration-none">Register
+                                        here</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <script>
+                    // Auto-dismiss messages after 1 second
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const messages = document.querySelectorAll('.alert');
+                        messages.forEach(function (message) {
+                            // Add close button
+                            const closeButton = document.createElement('button');
+                            closeButton.className = 'alert-close';
+                            closeButton.innerHTML = '&times;';
+                            closeButton.onclick = function () {
+                                message.style.opacity = '0';
+                                setTimeout(function () {
+                                    message.remove();
+                                }, 500);
+                            };
+                            message.appendChild(closeButton);
+
+                            // Auto-dismiss after 1 second
+                            setTimeout(function () {
+                                message.style.opacity = '0';
+                                setTimeout(function () {
+                                    message.remove();
+                                }, 500);
+                            }, 1000);
+                        });
+                    });
+
+                    // Add CSS for smooth message fade out
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .alert {
+                            transition: opacity 0.5s ease-out;
+                        }
+                    `;
+                    document.head.appendChild(style);
+
+                    // Simple script for form validation
+                    const loginForm = document.getElementById('loginForm');
+                    if (loginForm) {
+                        loginForm.addEventListener('submit', function (e) {
+                            const username = document.getElementById('username');
+                            const password = document.getElementById('password');
+
+                            if (!username.value || !password.value) {
+                                e.preventDefault();
+                                alert('Please fill in all fields');
+                            }
+                        });
+                    }
+
+                    // End of script
+                    createGlowingOrbs();
+
+                    // Initialize orb particles
+                    tsParticles.load("orb-particles", {
+                        fpsLimit: 60,
+                        particles: {
+                            number: {
+                                value: 8,
+                                density: {
+                                    enable: true,
+                                    value_area: 1500
+                                }
+                            },
+                            color: {
+                                value: ["#4a6bff", "#00c9a7", "#ff4a9e", "#ffc107"]
+                            },
+                            shape: {
+                                type: "circle",
+                            },
+                            opacity: {
+                                value: 0.5,
+                                random: true,
+                                anim: {
+                                    enable: true,
+                                    speed: 0.4,
+                                    opacity_min: 0.2,
+                                    sync: false
+                                }
+                            },
+                            size: {
+                                value: 80,
+                                random: true,
+                                anim: {
+                                    enable: true,
+                                    speed: 5,
+                                    size_min: 50,
+                                    sync: false
+                                }
+                            },
+                            move: {
+                                enable: true,
+                                speed: 1,
+                                direction: "none",
+                                random: true,
+                                straight: false,
+                                out_mode: "out",
+                                bounce: false,
+                                attract: {
+                                    enable: true,
+                                    rotateX: 600,
+                                    rotateY: 1200
+                                }
+                            },
+                            life: {
+                                duration: {
+                                    value: 15,
+                                    random: true
+                                },
+                                count: 1
+                            },
+                            roll: {
+                                darken: {
+                                    enable: false,
+                                    value: 0
+                                },
+                                enable: false,
+                                speed: 25
+                            },
+                            wobble: {
+                                distance: 30,
+                                enable: true,
+                                speed: {
+                                    angle: 10,
+                                    move: 10
+                                }
+                            },
+                            tilt: {
+                                direction: "random",
+                                enable: true,
+                                value: {
+                                    min: 0,
+                                    max: 360
+                                },
+                                animation: {
+                                    enable: true,
+                                    speed: 10,
+                                    sync: false
+                                }
+                            }
+                        },
+                        interactivity: {
+                            detect_on: "canvas",
+                            events: {
+                                onhover: {
+                                    enable: true,
+                                    mode: "bubble"
+                                },
+                                onclick: {
+                                    enable: true,
+                                    mode: "repulse"
+                                },
+                                resize: true
+                            },
+                            modes: {
+                                grab: {
+                                    distance: 400,
+                                    line_linked: {
+                                        opacity: 0.5
+                                    }
+                                },
+                                bubble: {
+                                    distance: 200,
+                                    size: 100,
+                                    duration: 0.4,
+                                    opacity: 0.8,
+                                    speed: 3
+                                },
+                                repulse: {
+                                    distance: 200,
+                                    duration: 0.4
+                                },
+                                push: {
+                                    particles_nb: 1
+                                },
+                                remove: {
+                                    particles_nb: 2
+                                }
+                            }
+                        },
+                        backgroundMask: {
+                            enable: false,
+                            cover: {
+                                value: {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0
+                                }
+                            }
+                        },
+                        retina_detect: true,
+                        background: {
+                            color: "transparent",
+                            image: "",
+                            position: "50% 50%",
+                            repeat: "no-repeat",
+                            size: "cover"
+                        }
+                    });
+
+                    // Initialize background particles
+                    particlesJS('particles-canvas', {
+                        particles: {
+                            number: {
+                                value: 80,
+                                density: {
+                                    enable: true,
+                                    value_area: 800
+                                }
+                            },
+                            color: {
+                                value: ["#4a6bff", "#ff4a9e", "#f8f9fa"]
+                            },
+                            shape: {
+                                type: "circle"
+                            },
+                            opacity: {
+                                value: 0.5,
+                                random: true,
+                                anim: {
+                                    enable: true,
+                                    speed: 1,
+                                    opacity_min: 0.1,
+                                    sync: false
+                                }
+                            },
+                            size: {
+                                value: 3,
+                                random: true,
+                                anim: {
+                                    enable: true,
+                                    speed: 2,
+                                    size_min: 0.1,
+                                    sync: false
+                                }
+                            },
+                            line_linked: {
+                                enable: true,
+                                distance: 150,
+                                color: "#4a6bff",
+                                opacity: 0.4,
+                                width: 1
+                            },
+                            move: {
+                                enable: true,
+                                speed: 2,
+                                direction: "none",
+                                random: true,
+                                straight: false,
+                                out_mode: "out",
+                                bounce: false,
+                                attract: {
+                                    enable: true,
+                                    rotateX: 600,
+                                    rotateY: 1200
+                                }
+                            }
+                        },
+                        interactivity: {
+                            detect_on: "canvas",
+                            events: {
+                                onhover: {
+                                    enable: true,
+                                    mode: "repulse"
+                                },
+                                onclick: {
+                                    enable: true,
+                                    mode: "push"
+                                },
+                                resize: true
+                            },
+                            modes: {
+                                repulse: {
+                                    distance: 100,
+                                    duration: 0.4
+                                },
+                                push: {
+                                    particles_nb: 4
+                                }
+                            }
+                        },
+                        retina_detect: true
+                    });
+
+                    // Initialize quiz particles
+                    tsParticles.load("quiz-particles", {
+                        fpsLimit: 60,
+                        particles: {
+                            number: {
+                                value: 40,
+                                density: {
+                                    enable: true,
+                                    value_area: 800
+                                }
+                            },
+                            color: {
+                                value: ["#00c9a7", "#4a6bff", "#ff4a9e", "#ffc107"]
+                            },
+                            shape: {
+                                type: ["circle", "triangle", "star", "polygon"],
+                                polygon: {
+                                    sides: 5
+                                }
+                            },
+                            opacity: {
+                                value: 0.6,
+                                random: true,
+                                anim: {
+                                    enable: true,
+                                    speed: 1,
+                                    opacity_min: 0.1,
+                                    sync: false
+                                }
+                            },
+                            size: {
+                                value: 6,
+                                random: true,
+                                anim: {
+                                    enable: true,
+                                    speed: 1,
+                                    size_min: 1,
+                                    sync: false
+                                }
+                            },
+                            line_linked: {
+                                enable: true,
+                                distance: 120,
+                                color: "#00c9a7",
+                                opacity: 0.4,
+                                width: 1
+                            },
+                            move: {
+                                enable: true,
+                                speed: 1.5,
+                                direction: "none",
+                                random: true,
+                                straight: false,
+                                out_mode: "bounce",
+                                bounce: true,
+                                attract: {
+                                    enable: false,
+                                    rotateX: 600,
+                                    rotateY: 1200
+                                }
+                            }
+                        },
+                        interactivity: {
+                            detect_on: "canvas",
+                            events: {
+                                onhover: {
+                                    enable: true,
+                                    mode: "repulse"
+                                },
+                                onclick: {
+                                    enable: true,
+                                    mode: "push"
+                                },
+                                resize: true
+                            },
+                            modes: {
+                                repulse: {
+                                    distance: 150,
+                                    duration: 0.4
+                                },
+                                push: {
+                                    particles_nb: 4
+                                }
+                            }
+                        },
+                        retina_detect: true
+                    });
+        });
+
+                    // Function to create glowing orbs
+                    function createGlowingOrbs() {
+                        const body = document.querySelector('body');
+                        const colors = [
+                            'rgba(74, 107, 255, 0.3)',    // Blue
+                            'rgba(255, 74, 158, 0.3)',    // Pink
+                            'rgba(0, 201, 167, 0.3)',     // Teal
+                            'rgba(255, 193, 7, 0.3)'      // Yellow
+                        ];
+
+                        // Create 5 orbs with different sizes and positions
+                        for (let i = 0; i < 5; i++) {
+                            const orb = document.createElement('div');
+                            orb.classList.add('orb');
+
+                            // Random size between 100 and 300px
+                            const size = Math.floor(Math.random() * 200) + 100;
+                            orb.style.width = `${size}px`;
+                            orb.style.height = `${size}px`;
+
+                            // Random position
+                            orb.style.left = `${Math.floor(Math.random() * 100)}%`;
+                            orb.style.top = `${Math.floor(Math.random() * 100)}%`;
+
+                            // Random color
+                            const colorIndex = Math.floor(Math.random() * colors.length);
+                            orb.style.background = `radial-gradient(circle at 30% 30%, ${colors[colorIndex].replace('0.3', '0.6')}, transparent 70%)`;
+
+                            // Random animation delay
+                            orb.style.animationDelay = `${i * 2}s`;
+
+                            // Add to body
+                            body.appendChild(orb);
+                        }
+                    }
+                </script>
+</body>
+
+</html>
+
+</html>

@@ -1,0 +1,55 @@
+<!-- My Quizzes Section template -->
+<div class="d-flex align-items-center mb-4">
+  <button class="btn btn-primary me-3 d-lg-none sidebar-toggle">
+    <i class="fas fa-bars"></i>
+  </button>
+  <h2 class="fw-bold glow-text mb-0">My Quizzes</h2>
+  <div class="ms-auto">
+    <a href="{% url 'quiz:create_quiz' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-2"></i> Create New Quiz
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  {% for quiz in quizzes %}
+  <div class="col-md-6 col-lg-4 mb-4">
+    <div class="card quiz-card h-100">
+      <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">{{ quiz.title }}</h6>
+        <span class="badge {% if quiz.difficulty == 'Hard' %}bg-danger{% elif quiz.difficulty == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
+          {{ quiz.difficulty }}
+        </span>
+      </div>
+      <div class="card-body">
+        <p class="small">{{ quiz.description|truncatechars:100 }}</p>
+        <div class="d-flex justify-content-between small text-muted mb-3">
+          <span><i class="fas fa-question-circle me-1"></i> {{ quiz.questions.count }} questions</span>
+          <span><i class="fas fa-calendar me-1"></i> {{ quiz.created_at|date:"M d" }}</span>
+        </div>
+      </div>
+      <div class="card-footer bg-transparent">
+        <div class="d-grid gap-2">
+          <a href="{% url 'quiz:view_quiz' quiz.id %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-eye me-1"></i> View Quiz
+          </a>
+          <a href="{% url 'quiz:take_quiz' quiz.id %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-play me-1"></i> Take Quiz
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="text-center py-5">
+      <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+      <h4>No Quizzes Created Yet</h4>
+      <p class="text-muted">Create your first quiz to see it here.</p>
+      <a href="{% url 'quiz:create_quiz' %}" class="btn btn-primary mt-3">
+        <i class="fas fa-plus me-2"></i> Create First Quiz
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div> 

@@ -1,0 +1,786 @@
+{% extends 'base.html' %}
+{% load quiz_extras %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #4a6bff;
+    --secondary: #00c9a7;
+    --dark: #1a1a2e;
+    --light: #f8f9fa;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --darker: #0f0f1a;
+    --card-bg: rgba(34, 34, 59, 0.8);
+    --sidebar-bg: rgba(26, 26, 46, 0.95);
+  }
+
+  body {
+    background-color: var(--dark);
+    color: var(--light);
+    perspective: 1000px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Fixed sidebar styling */
+  .sidebar-wrapper {
+    position: sticky;
+    top: 20px;
+    height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+
+  /* Scrollbar styling for the sidebar */
+  .sidebar-wrapper::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .sidebar-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+
+  .sidebar-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .sidebar-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Main content scrolling */
+  .main-content {
+    max-height: 100vh;
+    overflow-y: auto;
+    padding-right: 10px;
+  }
+
+  /* Scrollbar styling for the main content */
+  .main-content::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .main-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+
+  .main-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .main-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  #particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
+
+  .card {
+    border: none;
+    border-radius: 12px;
+    background-color: var(--card-bg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--light);
+    margin-bottom: 1rem;
+  }
+
+  .card:hover {
+    transform: translateY(-5px) rotateX(3deg);
+    box-shadow: 0 15px 30px rgba(74, 107, 255, 0.15);
+  }
+
+  .card-header {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--light);
+  }
+
+  .card-footer {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .quiz-card {
+    cursor: pointer;
+    overflow: hidden;
+    margin-top: 15px;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(35, 36, 66, 0.6), rgba(26, 26, 46, 0.8));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .quiz-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(74, 107, 255, 0.25);
+    border: 1px solid rgba(74, 107, 255, 0.2);
+  }
+
+  .quiz-card .card-header {
+    background: linear-gradient(135deg, rgba(74, 107, 255, 0.15), rgba(0, 201, 167, 0.05)) !important;
+    padding: 20px;
+    border-bottom: none;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .quiz-card .card-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(74, 107, 255, 0.15), transparent 70%);
+    transform: rotate(30deg);
+  }
+
+  .quiz-card .badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 2;
+    padding: 8px 15px;
+    font-weight: 500;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+  }
+  
+  .quiz-info-box {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .quiz-info-box:hover {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 20px rgba(74, 107, 255, 0.1);
+  }
+  
+  .quiz-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -5px 15px;
+  }
+  
+  .quiz-stat-item {
+    flex: 1 0 calc(50% - 10px);
+    margin: 5px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .quiz-stat-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-3px);
+  }
+  
+  .quiz-stat-item i {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    color: var(--primary);
+  }
+  
+  .quiz-stat-item span {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  
+  .quiz-action-btn {
+    border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border: none;
+  }
+  
+  .quiz-action-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%);
+    opacity: 0;
+    transition: all 0.5s ease;
+    transform: scale(0);
+  }
+  
+  .quiz-action-btn:hover::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .quiz-progress {
+    height: 8px;
+    border-radius: 4px;
+    margin: 15px 0;
+    background-color: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .quiz-progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    transition: width 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .quiz-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.2) 50%,
+      rgba(255,255,255,0) 100%);
+    animation: shine 1.5s infinite;
+  }
+  
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .stat-card {
+    border-left: 5px solid var(--primary);
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle,
+        rgba(74, 107, 255, 0.1) 0%,
+        transparent 70%);
+    transform: scale(0);
+    transition: transform 0.6s ease-out;
+  }
+
+  .stat-card:hover::before {
+    transform: scale(3);
+  }
+
+  .progress {
+    height: 10px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .progress-bar {
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(74, 107, 255, 0.5);
+  }
+
+  .progress-bar.bg-success {
+    background-color: var(--success) !important;
+  }
+  
+  .progress-bar.bg-primary {
+    background-color: var(--primary) !important;
+  }
+  
+  .progress-bar.bg-warning {
+    background-color: var(--warning) !important;
+  }
+  
+  .progress-bar.bg-danger {
+    background-color: var(--danger) !important;
+  }
+  
+  .progress-bar.bg-secondary {
+    background-color: #6c757d !important;
+  }
+
+  .floating {
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  .btn-primary, .btn-outline-primary {
+    border-radius: 25px;
+    padding: 8px 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(to right, var(--primary), #6a5cff);
+    border: none;
+    box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+    transition: all 0.3s ease;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+    background: linear-gradient(to right, #5a7bff, var(--primary));
+  }
+
+  .btn-outline-primary {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .btn-warning {
+    background: linear-gradient(to right, var(--warning), #ffad33);
+    border: none;
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+    transition: all 0.3s ease;
+    color: #212529;
+  }
+
+  .btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.4);
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .card-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 15px;
+  }
+
+  .action-btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .action-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+    z-index: -1;
+    transition: all 0.6s ease;
+  }
+
+  .action-btn:hover::after {
+    left: 100%;
+  }
+
+  .attempts-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+  }
+
+  .attempts-container.show {
+    max-height: 800px;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 5px var(--primary);
+  }
+
+  .table {
+    color: var(--light);
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .empty-container {
+    text-align: center;
+    padding: 3rem;
+    background: linear-gradient(45deg, var(--darker), var(--card-bg));
+    border-radius: 15px;
+    border: 1px solid rgba(74, 107, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3 mb-4">
+      <div class="sidebar-wrapper">
+        <div class="card stat-card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Profile Stats</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <div class="bg-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px">
+                <i class="fas fa-puzzle-piece text-white"></i>
+              </div>
+              <div>
+                <h6 class="mb-0">Total Quizzes</h6>
+                <h3 class="mb-0 floating">{{ created_quizzes|length }}</h3>
+              </div>
+            </div>
+            
+            <div class="d-flex align-items-center mb-3">
+              <div class="bg-success rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px">
+                <i class="fas fa-trophy text-white"></i>
+              </div>
+              <div>
+                <h6 class="mb-0">Total Points</h6>
+                <h3 class="mb-0 floating">{{ profile.total_points }}</h3>
+              </div>
+            </div>
+            
+            <div class="d-flex align-items-center">
+              <div class="bg-warning rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px">
+                <i class="fas fa-star text-white"></i>
+              </div>
+              <div>
+                <h6 class="mb-0">Best Score</h6>
+                <h3 class="mb-0 floating">{{ profile.highest_percentage|default:"0" }}%</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-grid gap-2 mt-3">
+          <a href="{% url 'quiz:dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-home me-2"></i> Back to Dashboard
+          </a>
+          <a href="{% url 'quizai:generate' %}" class="btn btn-primary">
+            <i class="fas fa-robot me-2"></i> Create New AI Quiz
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      <div class="main-content">
+        <div class="d-flex align-items-center mb-4">
+          <h2 class="fw-bold glow-text mb-0">My Created Quizzes</h2>
+          <div class="ms-auto">
+            <a href="?repair=1" class="btn btn-warning">
+              <i class="fas fa-wrench me-2"></i> Repair Quiz Attempts
+            </a>
+          </div>
+        </div>
+        
+        <!-- Quiz Cards Section -->
+        <div class="row">
+          {% for quiz in created_quizzes %}
+          <div class="col-md-6 mb-4">
+            <div class="card quiz-card h-100" style="margin-bottom: -2rem;">
+              <div class="card-header bg-transparent">
+                <h5 class="mb-0 fw-bold">{{ quiz.title }}</h5>
+                <span class="badge {% if quiz.difficulty == 'Hard' %}bg-danger{% elif quiz.difficulty == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
+                  {{ quiz.difficulty }}
+                </span>
+              </div>
+              
+              <div class="card-body">
+                <!-- Quiz Stats -->
+                <div class="quiz-stats">
+                  <div class="quiz-stat-item">
+                    <i class="fas fa-book-open"></i>
+                    <span>{{ quiz.category }}</span>
+                  </div>
+                  <div class="quiz-stat-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ quiz.created_at|date:"M d, Y" }}</span>
+                  </div>
+                  <div class="quiz-stat-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>{{ quiz.questions.count }} Questions</span>
+                  </div>
+                  {% with attempt_count=quiz.attempts|length %}
+                  <div class="quiz-stat-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ attempt_count }} Attempts</span>
+                  </div>
+                  {% endwith %}
+                </div>
+                
+                <!-- Progress Bar -->
+                {% with attempt_count=quiz.attempts|length %}
+                <div class="quiz-progress">
+                  <div class="quiz-progress-bar" style="width: {% if attempt_count > 0 %}85{% else %}15{% endif %}%"></div>
+                </div>
+                {% endwith %}
+                
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 mb-4">
+                  <div class="row">
+                    <div class="col-6">
+                      <a href="{% url 'quiz:edit_quiz' quiz.id %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-edit me-1"></i> Edit Quiz
+                      </a>
+                    </div>
+                    <div class="col-6">
+                      <a href="{% url 'quiz:delete_quiz' quiz.id %}" class="btn btn-outline-danger btn-sm w-100">
+                        <i class="fas fa-trash me-1"></i> Delete Quiz
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Attempt Details -->
+                <div id="attempts{{ quiz.id }}" class="attempts-container">
+                  <div class="card bg-dark">
+                    <div class="card-body">
+                      <h6 class="mb-3"><i class="fas fa-history me-2"></i>Attempt History</h6>
+                      
+                      {% if quiz.attempts %}
+                        {% for attempt in quiz.attempts %}
+                        <div class="mb-3 p-2 rounded" style="background: rgba(255,255,255,0.05);">
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-info">Attempt #{{ forloop.counter }}</span>
+                            <small class="text-muted">{{ attempt.date|date:"M d, Y H:i" }}</small>
+                          </div>
+                          
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Score: {{ attempt.score }}/{{ attempt.max_score }}</span>
+                            <span class="badge {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-primary{% elif attempt.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                              {{ attempt.percentage|floatformat:1 }}%
+                            </span>
+                          </div>
+                          
+                          {% if attempt.time_taken %}
+                          <div class="small text-muted">
+                            <i class="fas fa-clock me-1"></i> {{ attempt.time_taken }}
+                          </div>
+                          {% endif %}
+                        </div>
+                        {% endfor %}
+                      {% else %}
+                        <!-- Check for attempts through quiz.quiz_attempts as fallback -->
+                        {% with custom_attempts=quiz.quizattempt_set.all %}
+                          {% if custom_attempts %}
+                            {% for attempt in custom_attempts %}
+                            <div class="mb-3 p-2 rounded" style="background: rgba(255,255,255,0.05);">
+                              <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-info">Attempt #{{ forloop.counter }}</span>
+                                <small class="text-muted">{{ attempt.completed_at|date:"M d, Y H:i" }}</small>
+                              </div>
+                              
+                              <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Score: {{ attempt.score }}/{{ quiz.questions.count }}</span>
+                                <span class="badge {% if attempt.score|get_percentage:quiz.questions.count >= 80 %}bg-success{% elif attempt.score|get_percentage:quiz.questions.count >= 60 %}bg-primary{% elif attempt.score|get_percentage:quiz.questions.count >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                  {{ attempt.score|get_percentage:quiz.questions.count|floatformat:1 }}%
+                                </span>
+                              </div>
+                              
+                              {% if attempt.completed_at and attempt.started_at %}
+                              <div class="small text-muted">
+                                <i class="fas fa-clock me-1"></i> {{ attempt.completed_at|time_diff:attempt.started_at }}
+                              </div>
+                              {% endif %}
+                            </div>
+                            {% endfor %}
+                          {% else %}
+                            <!-- Check AI quiz attempts -->
+                            {% with ai_attempts=view.get_ai_quiz_attempts quiz_id=quiz.id %}
+                              {% if ai_attempts %}
+                                {% for attempt in ai_attempts %}
+                                <div class="mb-3 p-2 rounded" style="background: rgba(255,255,255,0.05);">
+                                  <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-info">Attempt #{{ forloop.counter }}</span>
+                                    <small class="text-muted">{{ attempt.completed_at|date:"M d, Y H:i" }}</small>
+                                  </div>
+                                  
+                                  <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>Score: {{ attempt.score }}/{{ attempt.max_score }}</span>
+                                    <span class="badge {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-primary{% elif attempt.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                      {{ attempt.percentage|floatformat:1 }}%
+                                    </span>
+                                  </div>
+                                  
+                                  {% if attempt.time_taken %}
+                                  <div class="small text-muted">
+                                    <i class="fas fa-clock me-1"></i> {{ attempt.time_taken }}
+                                  </div>
+                                  {% endif %}
+                                </div>
+                                {% endfor %}
+                              {% else %}
+                                <!-- Direct fallback to global attempt tables -->
+                                <div class="text-center py-3">
+                                  <i class="fas fa-info-circle text-info mb-2"></i>
+                                  <p class="mb-1">Your quiz score will appear here after your first attempt.</p>
+                                  <p class="small text-muted">If you've already taken this quiz, try clicking the "Repair Quiz Attempts" button at the top of the page.</p>
+                                </div>
+                              {% endif %}
+                            {% endwith %}
+                          {% endif %}
+                        {% endwith %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer bg-transparent">
+                <a href="{% url 'quiz:view_quiz' quiz.id %}" class="btn btn-outline-primary quiz-action-btn w-100">
+                  <i class="fas fa-eye me-2"></i> View Quiz Details
+                </a>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12">
+            <div class="empty-container">
+              <i class="fas fa-puzzle-piece fa-4x text-primary mb-3"></i>
+              <h4 class="mb-3">You haven't created any quizzes yet</h4>
+              <p class="text-muted mb-4">Create your first quiz to see it here. Start with AI-generated quizzes or create one from scratch.</p>
+              
+              <div class="card mb-4" style="background: rgba(255,255,255,0.05);">
+                <div class="card-body">
+                  <h5 class="mb-3"><i class="fas fa-lightbulb text-warning me-2"></i>Two Ways to Create Quizzes</h5>
+                  <div class="row">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                      <div class="card h-100" style="background: rgba(74, 107, 255, 0.1);">
+                        <div class="card-body text-center p-4">
+                          <i class="fas fa-robot fa-3x mb-3 text-primary"></i>
+                          <h5 class="mb-2">AI-Generated Quiz</h5>
+                          <p class="small mb-3">Let our AI create a customized quiz on any topic of your choice</p>
+                          <a href="{% url 'quizai:index' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-magic me-1"></i> Try AI Quiz Creator
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="card h-100" style="background: rgba(0, 201, 167, 0.1);">
+                        <div class="card-body text-center p-4">
+                          <i class="fas fa-pencil-alt fa-3x mb-3 text-secondary"></i>
+                          <h5 class="mb-2">Custom Quiz</h5>
+                          <p class="small mb-3">Create your own quiz from scratch with custom questions and answers</p>
+                          <a href="{% url 'quiz:create_quiz' %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-plus me-1"></i> Create Custom Quiz
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {% if ai_attempts_count > 0 %}
+              <div class="text-center">
+                <a href="?repair=1&create=1" class="btn btn-warning">
+                  <i class="fas fa-magic me-2"></i> Create Quiz from Existing Attempts
+                </a>
+                <div class="mt-2 text-muted">
+                  <i class="fas fa-info-circle me-1"></i> You have {{ ai_attempts_count }} quiz attempts that aren't linked to any quiz.
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize particles.js
+  particlesJS('particles-js', {
+    particles: {
+      number: { value: 80, density: { enable: true, value_area: 800 } },
+      color: { value: '#4a6bff' },
+      shape: { type: 'circle' },
+      opacity: { value: 0.1, random: true },
+      size: { value: 3, random: true },
+      line_linked: { enable: true, distance: 150, color: '#4a6bff', opacity: 0.1, width: 1 },
+      move: { enable: true, speed: 1, direction: 'none', random: true, straight: false, out_mode: 'out' }
+    },
+    interactivity: {
+      detect_on: 'canvas',
+      events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+      modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+    },
+    retina_detect: true
+  });
+});
+
+function toggleAttempts(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.classList.toggle('show');
+    
+    // Close all other attempt sections
+    document.querySelectorAll('.attempts-container').forEach(el => {
+      if (el.id !== elementId && el.classList.contains('show')) {
+        el.classList.remove('show');
+      }
+    });
+  }
+}
+</script>
+{% endblock %}

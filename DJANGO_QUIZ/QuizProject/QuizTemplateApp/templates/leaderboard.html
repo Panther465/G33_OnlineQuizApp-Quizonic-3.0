@@ -1,0 +1,927 @@
+{% load quiz_extras %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaderboard - QuizMaster</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Animation Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --secondary: #00c9a7;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --darker: #0f0f1a;
+            --card-bg: rgba(34, 34, 59, 0.8);
+            --sidebar-bg: rgba(26, 26, 46, 0.95);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            perspective: 1000px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .page-container {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4);
+            height: 100vh;
+            width: 250px;
+            position: fixed;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            width: calc(100% - 250px);
+        }
+
+        .logo {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 24px;
+            padding: 20px 15px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(74, 107, 255, 0.3);
+        }
+
+        .text-muted {
+            --bs-text-opacity: 1;
+            color: #a0a8bd !important;
+        }
+
+        .logo i {
+            animation: pulse 2s infinite;
+        }
+
+        .nav-link {
+            color: var(--light);
+            border-radius: 8px;
+            margin: 5px 10px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: linear-gradient(90deg,
+                    rgba(74, 107, 255, 0.2),
+                    transparent);
+            color: white;
+            transform: translateX(5px);
+            border-left: 3px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(74, 107, 255, 0.2);
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            background-color: var(--card-bg);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--light);
+        }
+
+        .card:hover {
+            transform: translateY(-5px) rotateX(3deg);
+            box-shadow: 0 15px 30px rgba(74, 107, 255, 0.15);
+        }
+
+        .card-header {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--light);
+        }
+
+        .card-footer {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-card {
+            border-left: 5px solid var(--primary);
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle,
+                    rgba(74, 107, 255, 0.1) 0%,
+                    transparent 70%);
+            transform: scale(0);
+            transition: transform 0.6s ease-out;
+        }
+
+        .stat-card:hover::before {
+            transform: scale(3);
+        }
+
+        .table {
+            color: var(--light);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .table-dark {
+            background-color: var(--card-bg);
+        }
+
+        .table-dark th,
+        .table-dark td {
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .medal {
+            font-size: 24px;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+            transition: all 0.3s ease;
+        }
+
+        .medal:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .gold {
+            color: #ffd700;
+        }
+
+        .silver {
+            color: #c0c0c0;
+        }
+
+        .bronze {
+            color: #cd7f32;
+        }
+
+        .leaderboard-tabs .nav-link {
+            font-weight: 500;
+            color: var(--light);
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            border-radius: 0;
+            border: none;
+            padding: 1rem 1.5rem;
+            position: relative;
+        }
+
+        .leaderboard-tabs .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .leaderboard-tabs .nav-link:hover {
+            opacity: 1;
+            transform: none;
+            box-shadow: none;
+            border-left: none;
+        }
+
+        .leaderboard-tabs .nav-link.active {
+            background: transparent;
+            opacity: 1;
+            box-shadow: none;
+            color: var(--light);
+            border-left: none;
+            transform: none;
+        }
+
+        .leaderboard-tabs .nav-link.active::after {
+            transform: scaleX(1);
+        }
+
+        .rank-badge {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .rank-1 {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+        }
+
+        .rank-2 {
+            background: linear-gradient(45deg, #C0C0C0, #A9A9A9);
+        }
+
+        .rank-3 {
+            background: linear-gradient(45deg, #CD7F32, #A0522D);
+        }
+
+        .rank-other {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(74, 107, 255, 0.5);
+        }
+
+        .category-filter {
+            padding: 8px 12px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .category-filter:hover,
+        .category-filter.active {
+            background: rgba(74, 107, 255, 0.1);
+            border-color: rgba(74, 107, 255, 0.3);
+        }
+
+        /* Mobile Sidebar Toggle Styles */
+        .sidebar-toggle {
+            display: none !important;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                left: -250px;
+                backdrop-filter: blur(10px);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .sidebar-toggle {
+                display: inline-block !important;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .main-content-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 99;
+                display: none;
+            }
+
+            .main-content-overlay.active {
+                display: block;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* Leaderboard specific styles */
+        .tab-content {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .table {
+            color: var(--light) !important;
+            margin-bottom: 0;
+            background: rgba(26, 26, 46, 0.6);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        /* Override Bootstrap's default white background */
+        .table > :not(caption) > * > * {
+            background-color: transparent !important;
+            color: var(--light) !important;
+            box-shadow: none !important;
+        }
+
+        .table thead th {
+            background: rgba(74, 107, 255, 0.1);
+            color: var(--light);
+            border-bottom: 2px solid rgba(74, 107, 255, 0.2);
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table tbody {
+            background: rgba(26, 26, 46, 0.8);
+            color: var(--light);
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(26, 26, 46, 0.8);
+            color: var(--light);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(74, 107, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 107, 255, 0.1);
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            background-color: transparent;
+        }
+
+        /* Medal styles */
+        .fa-medal {
+            font-size: 1.2rem;
+        }
+
+        .fa-medal.gold {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .fa-medal.silver {
+            color: #c0c0c0;
+            text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+        }
+
+        .fa-medal.bronze {
+            color: #cd7f32;
+            text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+        }
+
+        /* User avatar styles */
+        .rounded-circle {
+            border: 2px solid rgba(74, 107, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .rounded-circle:hover {
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        /* Rank column styles */
+        .table td:first-child {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Highlight current user */
+        .table-primary,
+        .table-primary > td {
+            background: rgba(74, 107, 255, 0.2) !important;
+            border-left: 3px solid var(--primary);
+            color: white !important;
+        }
+
+        .table-primary:hover,
+        .table-primary:hover > td {
+            background: rgba(74, 107, 255, 0.3) !important;
+            color: white !important;
+        }
+
+        /* Achievement text */
+        .text-muted {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .tab-content {
+                padding: 1rem;
+            }
+
+            .table thead th,
+            .table tbody td {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+
+    <div class="page-container">
+        <div class="main-content-overlay"></div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar d-flex flex-column flex-shrink-0 p-3">
+            <div class="logo mb-4"><img src="{% static 'images/logo.png' %}" alt="Quizonic Logo"
+                    style="height: 30px; width: auto;"></div>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="{% url 'quiz:dashboard' %}" class="nav-link">
+                        <i class="fas fa-home me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'quiz:leaderboard' %}" class="nav-link active">
+                        <i class="fas fa-trophy me-2"></i>Leaderboard
+                    </a>
+                </li>
+            </ul>
+            <div class="mt-auto text-center pb-3">
+                {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" class="rounded-circle" alt="User" width="32" height="32" />
+                {% else %}
+                <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center"
+                    style="width: 32px; height: 32px;">
+                    <span class="text-white">{{ request.user.username|slice:":1" }}</span>
+                </div>
+                {% endif %}
+                <span class="ms-2">{{ request.user.username }}</span>
+                <a href="{% url 'quiz:logout' %}" class="d-block text-decoration-none mt-2 text-muted small">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="d-flex align-items-center mb-4">
+                <button class="btn btn-primary me-3 d-lg-none sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 class="fw-bold mb-0">Leaderboard</h2>
+            </div>
+
+            <!-- Top Users Stats Cards -->
+            <div class="row mb-4">
+                {% if top_users %}
+                {% for user in top_users|slice:":3" %}
+                <div class="col-md-4 mb-3">
+                    <div class="card stat-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rank-badge rank-{{ forloop.counter }} me-3">{{ forloop.counter }}</div>
+                                <div>
+                                    {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" class="rounded-circle me-2"
+                                        alt="{{ user.user.username }}" width="40" height="40" />
+                                    {% else %}
+                                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center me-2"
+                                        style="width: 40px; height: 40px;">
+                                        <span class="text-white">{{ user.user.username|slice:":1" }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <span class="fw-bold">{{ user.user.username }}</span>
+                                </div>
+                                <i
+                                    class="fas fa-medal {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %} ms-auto floating"></i>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Total Points</span>
+                                    <span>{{ user.total_points }}</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" role="progressbar"
+                                        aria-valuenow="{{ user.total_points }}" aria-valuemin="0"
+                                        aria-valuemax="{{ max_points }}"
+                                        style="width: {% widthratio user.total_points max_points 100 %}%"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-clipboard-check me-1"></i> {{ user.quizzes_taken }} Quizzes</span>
+                                <span><i class="fas fa-puzzle-piece me-1"></i> {{ user.quizzes_created }} Created</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <ul class="nav nav-pills leaderboard-tabs mb-4" id="leaderboard-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="global-tab" data-bs-toggle="tab" href="#global-rankings">Global
+                                Ranking</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="quiz-taken-tab" data-bs-toggle="tab" href="#quiz-taken">Quizzes
+                                Taken</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="quiz-created-tab" data-bs-toggle="tab" href="#quiz-created">Quizzes
+                                Created</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="challenges-tab" data-bs-toggle="tab" href="#challenges">
+                                <i class="fas fa-fire me-1"></i>Challenges</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- Global Rankings Tab -->
+                        <div class="tab-pane fade show active" id="global-rankings">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Rank</th>
+                                            <th scope="col">User</th>
+                                            <th scope="col">Total Points</th>
+                                            <th scope="col">Quizzes Taken</th>
+                                            <th scope="col">Quizzes Created</th>
+                                            <th scope="col">Achievements</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in top_users %}
+                                        <tr class="{% if user.user == request.user %}table-primary{% endif %}">
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if user.avatar %}
+                                                    <img src="{{ user.avatar.url }}" class="rounded-circle me-2"
+                                                        alt="{{ user.user.username }}" width="32" height="32" />
+                                                    {% else %}
+                                                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center me-2"
+                                                        style="width: 32px; height: 32px;">
+                                                        <span class="text-white">{{ user.user.username|slice:":1" }}</span>
+                                                    </div>
+                                                    {% endif %}
+                                                    <span>{{ user.user.username }}</span>
+                                                    {% if forloop.counter == 1 %}
+                                                    <i class="fas fa-medal gold ms-2" title="Top Performer"></i>
+                                                    {% elif forloop.counter == 2 %}
+                                                    <i class="fas fa-medal silver ms-2" title="Silver Medal"></i>
+                                                    {% elif forloop.counter == 3 %}
+                                                    <i class="fas fa-medal bronze ms-2" title="Bronze Medal"></i>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>{{ user.total_points }}</td>
+                                            <td>{{ user.quizzes_taken }}</td>
+                                            <td>{{ user.quizzes_created }}</td>
+                                            <td>
+                                                {% if user.achievements.all %}
+                                                {% for achievement in user.achievements.all|slice:":3" %}
+                                                <i class="fas {{ achievement.icon }} me-1"
+                                                    title="{{ achievement.name }}"></i>
+                                                {% endfor %}
+                                                {% if user.achievements.count > 3 %}
+                                                <span class="badge bg-secondary">+{{ user.achievements.count|add:"-3"
+                                                    }}</span>
+                                                {% endif %}
+                                                {% else %}
+                                                <span class="text-muted">No achievements yet</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center">No users found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Quizzes Taken Tab -->
+                        <div class="tab-pane fade" id="quiz-taken">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Rank</th>
+                                            <th scope="col">User</th>
+                                            <th scope="col">Quizzes Taken</th>
+                                            <th scope="col">Avg. Score</th>
+                                            <th scope="col">Last Quiz</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in most_active_users %}
+                                        <tr class="{% if user.user == request.user %}table-primary{% endif %}">
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if user.avatar %}
+                                                    <img src="{{ user.avatar.url }}" class="rounded-circle me-2"
+                                                        alt="{{ user.user.username }}" width="32" height="32" />
+                                                    {% else %}
+                                                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center me-2"
+                                                        style="width: 32px; height: 32px;">
+                                                        <span class="text-white">{{ user.user.username|slice:":1" }}</span>
+                                                    </div>
+                                                    {% endif %}
+                                                    <span>{{ user.user.username }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ user.quizzes_taken }}</td>
+                                            <td>
+                                                {% if user.total_points > 0 and user.quizzes_taken > 0 %}
+                                                {{ user.total_points|divide:user.quizzes_taken|floatformat:1 }}
+                                                {% else %}
+                                                0
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ user.last_quiz_date|default:"-" }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center">No users found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Quizzes Created Tab -->
+                        <div class="tab-pane fade" id="quiz-created">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Rank</th>
+                                            <th scope="col">User</th>
+                                            <th scope="col">Quizzes Created</th>
+                                            <th scope="col">Most Popular Quiz</th>
+                                            <th scope="col">Total Attempts</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in top_creators %}
+                                        <tr class="{% if user.user == request.user %}table-primary{% endif %}">
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if user.avatar %}
+                                                    <img src="{{ user.avatar.url }}" class="rounded-circle me-2"
+                                                        alt="{{ user.user.username }}" width="32" height="32" />
+                                                    {% else %}
+                                                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center me-2"
+                                                        style="width: 32px; height: 32px;">
+                                                        <span class="text-white">{{ user.user.username|slice:":1" }}</span>
+                                                    </div>
+                                                    {% endif %}
+                                                    <span>{{ user.user.username }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ user.quizzes_created }}</td>
+                                            <td>{{ user.most_popular_quiz|default:"-" }}</td>
+                                            <td>{{ user.total_attempts|default:"0" }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center">No users found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Challenges Tab -->
+                        <div class="tab-pane fade" id="challenges">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Rank</th>
+                                            <th scope="col">User</th>
+                                            <th scope="col">Score</th>
+                                            <th scope="col">Quiz</th>
+                                            <th scope="col">Completed At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for challenger in top_challengers %}
+                                        <tr class="{% if challenger.user == request.user %}table-primary{% endif %}">
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if challenger.user.profile.avatar %}
+                                                    <img src="{{ challenger.user.profile.avatar.url }}" class="rounded-circle me-2"
+                                                        alt="{{ challenger.user.username }}" width="32" height="32" />
+                                                    {% else %}
+                                                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center me-2"
+                                                        style="width: 32px; height: 32px;">
+                                                        <span class="text-white">{{ challenger.user.username|slice:":1" }}</span>
+                                                    </div>
+                                                    {% endif %}
+                                                    <span>{{ challenger.user.username }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ challenger.score }}</td>
+                                            <td>{{ challenger.quiz.title }}</td>
+                                            <td>{{ challenger.completed_at|date:"M d, Y H:i" }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center">No challenge data found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
+    <script>
+        // Initialize particles.js
+        particlesJS("particles-js", {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#4a6bff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#4a6bff",
+                    opacity: 0.2,
+                    width: 1,
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false,
+                },
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "grab" },
+                    onclick: { enable: true, mode: "push" },
+                    resize: true,
+                },
+                modes: {
+                    grab: { distance: 140, line_linked: { opacity: 0.8 } },
+                    push: { particles_nb: 4 },
+                },
+            },
+            retina_detect: true,
+        });
+
+        // Toggle sidebar on mobile
+        document.querySelectorAll(".sidebar-toggle").forEach((button) => {
+            button.addEventListener("click", function () {
+                const sidebar = document.querySelector(".sidebar");
+                const overlay = document.querySelector(".main-content-overlay");
+
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+                button.classList.toggle("active");
+            });
+        });
+
+        // Overlay click handler
+        document.querySelector(".main-content-overlay").addEventListener("click", function () {
+            document.querySelector(".sidebar").classList.remove("active");
+            document.querySelector(".sidebar-toggle").classList.remove("active");
+            this.classList.remove("active");
+        });
+
+        // Check URL parameters to activate specific tab
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            
+            // If the tab parameter exists and matches one of our tabs, activate it
+            if (tab === 'challenges') {
+                // Get the tab element
+                const challengesTab = document.getElementById('challenges-tab');
+                
+                // Create a new Bootstrap Tab instance and show it
+                if (challengesTab) {
+                    const bsTab = new bootstrap.Tab(challengesTab);
+                    bsTab.show();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "DJANGO_QUIZ",
+			"path": "../.."
+		},
+		{
+			"name": "quizAI",
+			"path": "../../../../../Downloads/quizAI"
+		}
+	],
+	"settings": {}
+}

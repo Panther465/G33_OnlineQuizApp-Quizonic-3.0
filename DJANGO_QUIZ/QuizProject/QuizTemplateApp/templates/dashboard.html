@@ -1,0 +1,2047 @@
+{% load quiz_extras %}
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizMaster Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Animation Library -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #4a6bff;
+      --secondary: #00c9a7;
+      --dark: #1a1a2e;
+      --light: #f8f9fa;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --darker: #0f0f1a;
+      --card-bg: rgba(34, 34, 59, 0.8);
+      --sidebar-bg: rgba(26, 26, 46, 0.95);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--dark);
+      color: var(--light);
+      perspective: 1000px;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .sidebar {
+      background-color: var(--sidebar-bg);
+      box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4);
+      height: 100vh;
+      position: fixed;
+      z-index: 100;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .logo {
+      color: var(--primary);
+      font-weight: bold;
+      font-size: 24px;
+      padding: 20px 15px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 10px rgba(74, 107, 255, 0.3);
+    }
+
+    .text-muted {
+      --bs-text-opacity: 1;
+      color: #a0a8bd !important;
+    }
+
+    .logo i {
+      animation: pulse 2s infinite;
+    }
+
+    .nav-link {
+      color: var(--light);
+      border-radius: 8px;
+      margin: 5px 10px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-left: 3px solid transparent;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: linear-gradient(90deg,
+          rgba(74, 107, 255, 0.2),
+          transparent);
+      color: white;
+      transform: translateX(5px);
+      border-left: 3px solid var(--primary);
+      box-shadow: 0 5px 15px rgba(74, 107, 255, 0.2);
+    }
+
+    .card {
+      border: none;
+      border-radius: 12px;
+      background-color: var(--card-bg);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--light);
+    }
+
+    .card:hover {
+      transform: translateY(-5px) rotateX(3deg);
+      box-shadow: 0 15px 30px rgba(74, 107, 255, 0.15);
+    }
+
+    .card-header {
+      background-color: rgba(255, 255, 255, 0.03) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--light);
+    }
+
+    .card-footer {
+      background-color: rgba(255, 255, 255, 0.03) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-card {
+      border-left: 5px solid var(--primary);
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle,
+          rgba(74, 107, 255, 0.1) 0%,
+          transparent 70%);
+      transform: scale(0);
+      transition: transform 0.6s ease-out;
+    }
+
+    .stat-card:hover::before {
+      transform: scale(3);
+    }
+
+    .progress {
+      height: 10px;
+      border-radius: 5px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .progress-bar {
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(74, 107, 255, 0.5);
+    }
+
+    .quiz-card {
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .quiz-card .badge {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      z-index: 2;
+    }
+
+    .quiz-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg,
+          rgba(74, 107, 255, 0.2) 0%,
+          transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .quiz-card:hover::after {
+      opacity: 1;
+    }
+
+    .profile-img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      transition: all 0.4s ease;
+    }
+
+    .profile-img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(74, 107, 255, 0.3);
+    }
+
+    .medal {
+      font-size: 24px;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+      transition: all 0.3s ease;
+    }
+
+    .medal:hover {
+      transform: scale(1.2) rotate(10deg);
+    }
+
+    .gold {
+      color: #ffd700;
+    }
+
+    .silver {
+      color: #c0c0c0;
+    }
+
+    .bronze {
+      color: #cd7f32;
+    }
+
+    .content-section {
+      display: none;
+      transition: all 0.5s ease;
+      transform-origin: center top;
+    }
+
+    .content-section.active {
+      display: block;
+      animation: slideInFromRight 0.5s forwards;
+    }
+
+    @keyframes slideInFromRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .form-control,
+    .form-select {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--light);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background-color: rgba(255, 255, 255, 0.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.25rem rgba(74, 107, 255, 0.25);
+      color: var(--light);
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary), #6a5cff);
+      border: none;
+      box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+      background: linear-gradient(to right, #5a7bff, var(--primary));
+    }
+
+    .btn-outline-primary {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-outline-secondary {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--light);
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .tab-underline {
+      position: relative;
+      color: var(--light);
+    }
+
+    .tab-underline::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -2px;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .tab-underline.active::after {
+      transform: scaleX(1);
+    }
+
+    .nav-tabs {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-tabs .nav-link.active {
+      background-color: transparent;
+      border-color: transparent;
+      color: var(--primary);
+    }
+
+    .list-group-item {
+      background-color: transparent;
+      border-color: rgba(255, 255, 255, 0.05);
+      color: #f8f9fa;
+      transition: all 0.3s ease;
+    }
+
+    .list-group-item:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      transform: translateX(5px);
+    }
+
+    .list-group-item-action:focus,
+    .list-group-item-action:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--light);
+    }
+
+    .badge-item {
+      transition: all 0.3s ease;
+    }
+
+    .badge-item:hover {
+      transform: scale(1.1);
+    }
+
+    .table>:not(caption)>*>* {
+      padding: .5rem .5rem;
+      color: var(--bs-table-color-state, var(--bs-table-color-type, var(--bs-table-color)));
+      background-color: var(--bs-card-color);
+      border-bottom-width: var(--bs-border-width);
+      box-shadow: inset 0 0 0 9999px var(--bs-table-bg-state, var(--bs-table-bg-type, var(--bs-table-accent-bg)));
+    }
+
+    .table {
+      color: var(--light);
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .table-primary,
+    .table-primary>td,
+    .table-primary>th {
+      background-color: rgba(74, 107, 255, 0.2) !important;
+    }
+
+    .dropdown-menu {
+      background-color: var(--darker);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .dropdown-item {
+      color: var(--light);
+    }
+
+    .dropdown-item:focus,
+    .dropdown-item:hover {
+      background-color: rgba(74, 107, 255, 0.1);
+      color: white;
+    }
+
+    .alert {
+      background-color: rgba(40, 167, 69, 0.2);
+      border-color: rgba(40, 167, 69, 0.3);
+      color: #98ffa8;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
+
+    .floating {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .card-img-top {
+      transition: all 0.5s ease;
+      filter: brightness(0.8);
+    }
+
+    .quiz-card:hover .card-img-top {
+      filter: brightness(1);
+      transform: scale(1.05);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--darker);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(74, 107, 255, 0.5);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    .glow-text {
+      text-shadow: 0 0 5px var(--primary);
+    }
+
+    .neon-border {
+      box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary),
+        0 0 15px var(--primary);
+      animation: borderGlow 2s infinite alternate;
+    }
+
+    @keyframes borderGlow {
+      from {
+        box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+      }
+
+      to {
+        box-shadow: 0 0 7px var(--primary), 0 0 20px var(--primary);
+      }
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
+      -webkit-text-fill-color: var(--light);
+      transition: background-color 5000s ease-in-out 0s;
+      box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
+    }
+
+    .quiz-card {
+      cursor: pointer;
+      overflow: hidden;
+      margin-top: 15px;
+    }
+
+    /* Replace the existing .ai-recommendations-carousel styles with these: */
+    .ai-recommendations-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 2rem;
+      padding: 0.5rem;
+    }
+
+    /* Remove the overflow and flex-wrap properties */
+    .ai-recommendations-carousel {
+      flex-wrap: wrap;
+      /* Changed from nowrap to wrap */
+      overflow-x: visible;
+      /* Changed from auto to visible */
+      padding-bottom: 0;
+      /* Remove extra padding */
+    }
+
+    .ai-recommended-section {
+      background: linear-gradient(45deg, var(--darker), var(--card-bg));
+      padding: 2rem;
+      border-radius: 15px;
+      border: 1px solid rgba(74, 107, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ai-recommended-section::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="%234a6bff20" d="M49.9,-35.3C61.9,-20.5,67.1,2.2,61.3,20.5C55.5,38.8,38.6,52.6,18.9,60.6C-0.8,68.6,-23.3,70.7,-39.2,61.4C-55.1,52.1,-64.4,31.4,-64.9,11.9C-65.4,-7.7,-57.2,-26.2,-45.2,-41C-33.2,-55.8,-17.6,-66.9,1.2,-67.7C20,-68.5,39.9,-59.1,49.9,-35.3Z"/></svg>');
+      opacity: 0.1;
+      z-index: -1;
+    }
+
+    .ai-recommendations-carousel {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      padding-bottom: 1rem;
+    }
+
+    .ai-recommendations-carousel::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .ai-recommendations-carousel::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    .col-md-9.col-lg-10.ms-auto {
+      height: 100vh;
+      /* Full viewport height */
+      overflow-y: auto;
+      /* Enable vertical scrolling */
+    }
+
+    .ai-quiz-card {
+      border: 1px solid rgba(74, 107, 255, 0.3);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .ai-quiz-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 10px 25px rgba(74, 107, 255, 0.15);
+    }
+
+    .ai-badge {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      background: rgba(74, 107, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    .modal-content {
+      background: var(--darker);
+      border: 1px solid rgba(74, 107, 255, 0.3);
+      box-shadow: 0 0 30px rgba(74, 107, 255, 0.2);
+    }
+
+    .modal-header,
+    .modal-footer {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .start-quiz-btn {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .start-quiz-btn::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(to right,
+          rgba(255, 255, 255, 0) 20%,
+          rgba(255, 255, 255, 0.1) 50%,
+          rgba(255, 255, 255, 0) 80%);
+      transform: rotate(45deg);
+      animation: buttonShine 3s infinite;
+    }
+
+    @keyframes buttonShine {
+      from {
+        transform: translateX(-100%) rotate(45deg);
+      }
+
+      to {
+        transform: translateX(100%) rotate(45deg);
+      }
+    }
+
+    table tr:hover {
+      box-shadow: inset 0 0 0 9999px rgba(74, 107, 255, 0.05);
+      cursor: pointer;
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+      animation: slideInFromRight 0.5s forwards;
+    }
+
+    /* Mobile Sidebar Toggle Styles */
+    .sidebar-toggle {
+      display: none !important;
+    }
+
+    /* Add to your existing CSS */
+    #recommendations-loading {
+      animation: fadeIn 0.3s ease;
+    }
+
+    #recommendations-error {
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-10px);
+      }
+
+      75% {
+        transform: translateX(10px);
+      }
+    }
+
+    @media (max-width: 992px) {
+      .sidebar {
+        left: -100%;
+        width: 100%;
+        backdrop-filter: blur(10px);
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .sidebar-toggle {
+        display: inline-block !important;
+      }
+
+      .main-content-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+        display: none;
+      }
+
+      .main-content-overlay.active {
+        display: block;
+      }
+    }
+
+    .sidebar-toggle .fa-times {
+      display: none !important;
+    }
+
+    .sidebar-toggle.active .fa-bars {
+      display: none !important;
+    }
+
+    .sidebar-toggle.active .fa-times {
+      display: inline-block !important;
+    }
+
+    @media (max-width: 992px) {
+      .sidebar {
+        left: -100%;
+        width: 280px;
+        /* Sidebar की चौड़ाई कम करें */
+        backdrop-filter: blur(10px);
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+    }
+
+    .sidebar-toggle {
+      transition: all 0.3s ease;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-toggle:hover {
+      transform: rotate(90deg);
+      box-shadow: 0 0 10px rgba(74, 107, 255, 0.5);
+    }
+
+    .sidebar-toggle i {
+      font-size: 1.2rem;
+    }
+
+    /* Custom search input styling */
+    .search-container {
+      min-width: 250px;
+      transition: all 0.3s ease;
+    }
+
+    .search-container:focus-within {
+      box-shadow: 0 0 15px rgba(74, 107, 255, 0.2);
+    }
+
+    .search-btn {
+      padding: 0.5rem 1rem;
+    }
+
+    .start-quiz-btn {
+      position: relative;
+      z-index: 1;
+      /* Ensure button is above other elements */
+      pointer-events: auto;
+      /* Make sure clicks are registered */
+    }
+
+    .ai-quiz-card .card-img-top {
+      pointer-events: none;
+      /* Prevent image from blocking clicks */
+    }
+
+    /* Add these styles to your existing CSS */
+    .question {
+      background-color: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid var(--primary);
+    }
+
+    .question h5 {
+      color: var(--light);
+      margin-bottom: 1rem;
+    }
+
+    .options .form-check {
+      padding-left: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .options .form-check-input {
+      width: 1.2em;
+      height: 1.2em;
+      margin-top: 0.2em;
+    }
+
+    .options .form-check-label {
+      cursor: pointer;
+      padding-left: 0.5rem;
+    }
+
+    #quiz-timer {
+      font-weight: bold;
+      color: var(--warning);
+    }
+
+    .answer-review {
+      border-left: 4px solid;
+    }
+
+    .answer-review.bg-success {
+      border-color: var(--success);
+    }
+
+    .answer-review.bg-danger {
+      border-color: var(--danger);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Particles Background -->
+  <div id="particles-js"></div>
+
+  <div class="main-content-overlay"></div>
+  <!-- Sidebar -->
+  <div class="col-md-3 col-lg-2 sidebar d-flex flex-column flex-shrink-0 p-3">
+    <div class="logo mb-4"><img src="{% static 'images/logo.png' %}" alt="Quizonic Logo" style="height: 30px; width: auto;"></div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'quiz:home' %}">
+          <i class="fas fa-home"></i> Home
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" data-section="dashboard-section" href="#dashboard-section"
+          onclick="showSection('dashboard-section'); return false;">
+          <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'quiz:created_quizzes' %}">
+          <i class="fas fa-folder"></i> My Quizzes
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'quiz:leaderboard' %}" class="nav-link ">
+          <i class="fas fa-trophy "></i> Leaderboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'quiz:profile' %}">
+          <i class="fas fa-user"></i> Profile
+        </a>
+      </li>
+      {% if request.user.is_superuser %}
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/" target="_blank">
+          <i class="fas fa-cog"></i> Admin Panel
+        </a>
+      </li>
+      {% endif %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'quiz:logout' %}">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </li>
+    </ul>
+    <div class="mt-auto text-center pb-3">
+      {% if profile.avatar %}
+      <img src="{{ profile.avatar.url }}" class="rounded-circle" alt="User" width="32" height="32" />
+      {% else %}
+      <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center"
+        style="width: 32px; height: 32px;">
+        <span class="text-white">{{ request.user.username|slice:":1" }}</span>
+      </div>
+      {% endif %}
+      <span class="ms-2">{{ request.user.username }}</span>
+      <a href="{% url 'quiz:logout' %}" class="d-block text-decoration-none mt-2 text-muted small">
+        <i class="fas fa-sign-out-alt me-1"></i>Logout
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="col-md-9 col-lg-10 ms-auto px-4 py-3">
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="content-section dashboard-section active animate__animated animate__fadeIn">
+      <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-primary me-3 d-lg-none sidebar-toggle" id="sidebarToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h2 class="fw-bold glow-text mb-0">Welcome, {{ request.user.username }}!</h2>
+        <div class="ms-auto">
+          <a href="{% url 'quizai:generate' %}" class="btn btn-primary">
+            <i class="fas fa-robot me-2"></i> Take New AI Quiz
+          </a>
+        </div>
+      </div>
+
+      <!-- AI Quiz Stats Section -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card animate__animated animate__fadeIn">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-robot text-info me-2"></i> AI Quiz Activity
+              </h5>
+            </div>
+            <div class="card-body">
+              {% if stats.ai_stats.total_attempts > 0 %}
+              <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                  <div class="card stat-card h-100">
+                    <div class="card-body">
+                      <h6 class="text-muted">Total AI Quizzes</h6>
+                      <div class="d-flex align-items-center">
+                        <h3 class="mb-0 me-3 floating">{{ stats.ai_stats.total_attempts }}</h3>
+                        <i class="fas fa-brain fa-2x text-primary"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-3">
+                  <div class="card stat-card h-100">
+                    <div class="card-body">
+                      <h6 class="text-muted">Avg. Score</h6>
+                      <div class="d-flex align-items-center">
+                        <h3 class="mb-0 me-3 floating">{{ stats.ai_stats.avg_percentage|floatformat:1 }}%</h3>
+                        <i class="fas fa-percentage fa-2x text-success"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-3">
+                  <div class="card stat-card h-100">
+                    <div class="card-body">
+                      <h6 class="text-muted">Highest Score</h6>
+                      <div class="d-flex align-items-center">
+                        <h3 class="mb-0 me-3 floating">{{ stats.ai_stats.highest_score|floatformat:1 }}%</h3>
+                        <i class="fas fa-trophy fa-2x text-warning"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-3">
+                  <div class="card stat-card h-100">
+                    <div class="card-body">
+                      <h6 class="text-muted">Total Points</h6>
+                      <div class="d-flex align-items-center">
+                        <h3 class="mb-0 me-3 floating">{{ stats.ai_stats.total_score }}</h3>
+                        <i class="fas fa-star fa-2x text-danger"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Topic distribution section if available -->
+              {% if stats.ai_stats.genres %}
+              <div class="card mb-4 shadow"
+                style="background-color: #232340; border: 1px solid var(--primary); border-radius: 1rem;">
+                <div class="card-header"
+                  style="background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+                  <h6 class="mb-0">📊 Topic Distribution</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <!-- Chart Section -->
+                    <div class="col-md-8 mb-3 mb-md-0">
+                      <div class="chart-container p-2" style="position: relative; height: 200px;">
+                        <canvas id="topicChart"></canvas>
+                      </div>
+                    </div>
+
+                    <!-- Table Section -->
+                    <div class="col-md-4">
+                      <div class="table-responsive rounded shadow"
+                        style="border-radius: 1rem; overflow: hidden; background-color: #2c2c4a;">
+                        <table class="table table-sm mb-0" style="background-color: #2c2c4a;" ; color: #333;">
+                          <thead style="background-color: #2c2c4a;">
+                            <tr>
+                              <th style="padding: 0.75rem; color: #F8F9FA; border-bottom: 2px solid #dee2e6;">📚 Topic
+                              </th>
+                              <th style="padding: 0.75rem; color: #F8F9FA; border-bottom: 2px solid #dee2e6;">📝 Quizzes
+                              </th>
+                              <th style="padding: 0.75rem; color: #F8F9FA; border-bottom: 2px solid #dee2e6;">📈
+                                Avg.Score</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for topic, data in stats.ai_stats.genres.items %}
+                            <tr>
+                            <td style="color: #F8F9FA; font-weight: 500; padding: 0.7rem; border-bottom: 1px solid #dee2e6;">{{ topic }}</td>
+                            <td style="color: #F8F9FA ;padding: 0.7rem; border-bottom: 1px solid #dee2e6;">{{ data.count }}</td>
+                            <td style="color: #28a745; padding: 0.7rem; border-bottom: 1px solid #dee2e6;">{{ data.avg_score|floatformat:1 }}%</td>
+                        </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+
+
+              <!-- AI Quiz Attempts Table -->
+              <div class="table-responsive mt-4 rounded shadow"
+                style="background-color: var(--dark); border: 1px solid var(--primary); padding: 1rem; border-radius: 1rem;">
+                <table class="table table-hover mb-0"
+                  style="background-color: #1b1b2f; color: var(--light); border-radius: 0.5rem;">
+                  <thead style="background-color: #2c2c4a;">
+                    <tr>
+                      <th style="color: #F8F9FA; padding: 0.75rem;">🧠 Quiz</th>
+                      <th style="color: #F8F9FA; padding: 0.75rem;">📚 Topic</th>
+                      <th style="color: #F8F9FA; padding: 0.75rem;">🎯 Score</th>
+                      <th style="color: #F8F9FA; padding: 0.75rem;">📈 Percentage</th>
+                      <th style="color: #F8F9FA; padding: 0.75rem;">📅 Date Taken</th>
+                      <th style="color: #F8F9FA; padding: 0.75rem;">⏱️ Time Taken</th>
+                      <th style="color: #F8F9FA; padding: 0.75rem;">⚙️ Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for attempt in ai_quiz_attempts %}
+                    <tr onmouseover="this.style.backgroundColor='#2a2a45'"
+                      onmouseout="this.style.backgroundColor='#232340'">
+                      <td style="color: #F8F9FA; padding: 0.7rem;">{{ attempt.quiz_title }}</td>
+                      <td>
+                        {% if ' ' in attempt.quiz_title %}
+                        <span class="badge" style="background-color: var(--secondary); color: #fff;">{{ attempt.quiz_title.split|first }}</span>
+                        {% else %}
+                        
+                        <span class="badge bg-secondary">General</span>
+                        {% endif %}
+                      </td>
+                      <td style="color: #F8F9FA; padding: 0.7rem;">{{ attempt.score }}/{{ attempt.max_score }}</td>
+                      <td style="padding: 0.7rem; min-width: 150px;">
+                        <div class="progress" style="height: 10px; background-color: #2c2c4a;">
+                          {% with percentage=attempt.score|divide:attempt.max_score|multiply:100 %}
+                          <div class="progress-bar 
+                          {% if percentage >= 80 %}bg-success
+                          {% elif percentage >= 60 %}bg-primary
+                          {% elif percentage >= 40 %}bg-warning
+                          {% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ percentage }}%;"
+                            aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+                          </div>
+                          {% endwith %}
+                        </div>
+                      </td>
+                      <td style="color: #F8F9FA; padding: 0.7rem;">{{ attempt.completed_at|date:"M d, Y" }}</td>
+                      <td style="color: #F8F9FA; padding: 0.7rem;">{{ attempt.time_taken|duration_format }}</td>
+                      <td style="color: #F8F9FA; padding: 0.7rem;">
+                        <a href="{% url 'quizai:download_quiz' %}" class="btn btn-sm btn-outline-primary"
+                          style="border-color: var(--primary); color: var(--primary);">
+                          <i class="fas fa-download"></i> Download
+                        </a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <div class="text-center py-5">
+                <i class="fas fa-robot fa-4x text-muted mb-3"></i>
+                <h4>No AI Quizzes Taken Yet</h4>
+                <p class="text-muted">Try our AI Quiz Generator to create customized quizzes based on any topic.</p>
+                <a href="{% url 'quizai:index' %}" class="btn btn-primary mt-3">
+                  <i class="fas fa-plus me-2"></i> Take Your First AI Quiz
+                </a>
+              </div>
+              {% endif %}
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Created Quizzes Section -->
+      <div id="created-quizzes-section" class="content-section dashboard-section animate__animated animate__fadeIn">
+        <!-- Remove all content here -->
+      </div>
+
+      <!-- Leaderboard Section -->
+      <div id="leaderboard-section" class="content-section dashboard-section animate__animated animate__fadeIn">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-primary me-3 d-lg-none sidebar-toggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="fw-bold glow-text mb-0">Leaderboard</h2>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header bg-transparent">
+            <h5 class="mb-0"><i class="fas fa-trophy me-2"></i> Global Rankings</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Rank</th>
+                    <th scope="col">User</th>
+                    <th scope="col">Total Points</th>
+                    <th scope="col">Quizzes Taken</th>
+                    <th scope="col">Quizzes Created</th>
+                    <th scope="col">Achievements</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for user in top_users %}
+                  <tr class="{% if user.user == request.user %}table-primary{% endif %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" class="rounded-circle me-2" alt="{{ user.user.username }}"
+                          width="32" height="32" />
+                        {% else %}
+                        <div
+                          class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center me-2"
+                          style="width: 32px; height: 32px;">
+                          <span class="text-white">{{ user.user.username|slice:":1" }}</span>
+                        </div>
+                        {% endif %}
+                        <span>{{ user.user.username }}</span>
+                        {% if forloop.counter == 1 %}
+                        <i class="fas fa-medal ms-2 text-warning" title="Top Performer"></i>
+                        {% elif forloop.counter == 2 %}
+                        <i class="fas fa-medal ms-2 text-secondary" title="Silver Medal"></i>
+                        {% elif forloop.counter == 3 %}
+                        <i class="fas fa-medal ms-2 text-danger" title="Bronze Medal"></i>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td>{{ user.total_points }}</td>
+                    <td>{{ user.quizzes_taken }}</td>
+                    <td>{{ user.quizzes_created }}</td>
+                    <td>
+                      {% if user.achievements.all %}
+                      {% for achievement in user.achievements.all|slice:":3" %}
+                      <i class="fas {{ achievement.icon }} me-1" title="{{ achievement.name }}"></i>
+                      {% endfor %}
+                      {% if user.achievements.count > 3 %}
+                      <span class="badge bg-secondary">+{{ user.achievements.count|add:"-3" }}</span>
+                      {% endif %}
+                      {% else %}
+                      <span class="text-muted">No achievements yet</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6" class="text-center">No users found</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header bg-transparent">
+            <h5 class="mb-0"><i class="fas fa-user-check me-2"></i> Most Active Users</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Rank</th>
+                    <th scope="col">User</th>
+                    <th scope="col">Quizzes Taken</th>
+                    <th scope="col">Avg. Score</th>
+                    <th scope="col">Last Quiz Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for user in most_active_users %}
+                  <tr class="{% if user.user == request.user %}table-primary{% endif %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" class="rounded-circle me-2" alt="{{ user.user.username }}"
+                          width="32" height="32" />
+                        {% else %}
+                        <div
+                          class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center me-2"
+                          style="width: 32px; height: 32px;">
+                          <span class="text-white">{{ user.user.username|slice:":1" }}</span>
+                        </div>
+                        {% endif %}
+                        <span>{{ user.user.username }}</span>
+                      </div>
+                    </td>
+                    <td>{{ user.quizzes_taken }}</td>
+                    <td>
+                      {% if user.total_points > 0 and user.quizzes_taken > 0 %}
+                      {{ user.total_points|divide:user.quizzes_taken|floatformat:1 }}
+                      {% else %}
+                      0
+                      {% endif %}
+                    </td>
+                    <td>{{ user.last_quiz_date|default:"-"|date:"M d, Y" }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center">No users found</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div id="profile-section" class="content-section dashboard-section animate__animated animate__fadeIn">
+    </div>
+
+    <!-- AI Quizzes Section -->
+    <div id="ai-quizzes-section" class="content-section dashboard-section animate__animated animate__fadeIn">
+      <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-primary me-3 d-lg-none sidebar-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h2 class="fw-bold glow-text mb-0">AI Quizzes</h2>
+        <div class="ms-auto">
+          <a href="{% url 'quizai:index' %}" class="btn btn-primary">
+            <i class="fas fa-robot me-2"></i> Try AI Quiz Generator
+          </a>
+        </div>
+      </div>
+
+      <!-- AI Generated Quiz Reports Section -->
+      <div class="card mb-4">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i> Quiz Reports</h5>
+        </div>
+        <div class="card-body">
+          {% if ai_quiz_attempts %}
+          <div class="row">
+            {% for attempt in ai_quiz_attempts %}
+            <div class="col-md-6 col-lg-4 mb-4">
+              <div class="card quiz-card h-100">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">{{ attempt.quiz_title }}</h6>
+                  <span
+                    class="badge {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-primary{% elif attempt.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                    {{ attempt.percentage|floatformat:1 }}%
+                  </span>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <small class="text-muted">Score:</small>
+                    <p class="mb-1">{{ attempt.score }}/{{ attempt.max_score }}</p>
+                    <div class="progress" style="height: 8px;">
+                      <div
+                        class="progress-bar {% if attempt.percentage >= 80 %}bg-success{% elif attempt.percentage >= 60 %}bg-primary{% elif attempt.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                        style="width: {{ attempt.percentage }}%"></div>
+                    </div>
+                  </div>
+
+                  <div class="row mb-2">
+                    <div class="col-6">
+                      <small class="text-muted">Date:</small>
+                      <p class="mb-0">{{ attempt.completed_at|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="col-6">
+                      <small class="text-muted">Time Taken:</small>
+                      <p class="mb-0">{{ attempt.time_taken|duration_format }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                  <div class="d-grid">
+                    <a href="{% url 'quizai:download_quiz' %}" class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-download me-1"></i> Download Report
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-robot fa-4x text-muted mb-3"></i>
+            <h4>No AI Quizzes Taken Yet</h4>
+            <p class="text-muted">Try our AI Quiz Generator to create customized quizzes based on any topic.</p>
+            <a href="{% url 'quizai:index' %}" class="btn btn-primary mt-3">
+              <i class="fas fa-plus me-2"></i> Take Your First AI Quiz
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- AI Quiz Recommendations -->
+      <div class="ai-recommended-section mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="fw-bold glow-text">
+            AI-Powered Recommendations
+            <i class="fas fa-robot text-info ms-2"></i>
+          </h5>
+          <small class="text-muted">Updated based on your learning patterns</small>
+        </div>
+
+        <div id="ai-recommendations" class="row g-4 ai-recommendations-carousel">
+          <!-- AI Recommended Quizzes will be dynamically inserted here -->
+        </div>
+
+        <div class="text-center mt-4">
+          <button class="btn btn-outline-primary" id="refresh-recommendations">
+            <i class="fas fa-sync me-2"></i>Refresh Recommendations
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="quiz-section" class="content-section dashboard-section">
+      <!-- Quiz content will be dynamically inserted here -->
+    </div>
+
+    <div class="modal fade" id="quizStartModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title">Confirm Quiz Start</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>You're about to start:</p>
+            <h4 id="quizTitle" class="text-primary mb-3"></h4>
+            <p id="quizDetails" class="text-muted"></p>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="termsCheck" />
+              <label class="form-check-label" for="termsCheck">
+                I agree to the quiz terms
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary" id="confirmStart">
+              Start Quiz <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+      async function generateQuiz(quizId) {
+        // Hide all other sections
+        document.querySelectorAll(".content-section").forEach(section => {
+          section.classList.remove("active");
+        });
+
+        // Show quiz section
+        const quizSection = document.getElementById("quiz-section");
+        quizSection.classList.add("active");
+        quizSection.scrollIntoView({ behavior: 'smooth' });
+
+        // Show loading state
+        quizSection.innerHTML = `
+          <div class="card">
+            <div class="card-body text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3">Preparing your quiz...</p>
+            </div>
+          </div>
+        `;
+
+        try {
+          // Get the quiz card that was clicked
+          const card = document.querySelector(`.ai-quiz-card[data-quiz-id="${quizId}"]`);
+          const category = card.querySelector('.text-muted').textContent;
+          const difficulty = card.querySelector('.badge').textContent.toLowerCase();
+          const questionCount = parseInt(card.querySelector('.fa-question-circle').parentElement.textContent);
+
+          // Get questions from API
+          const questions = await QuizAPI.getQuestions(category, difficulty, questionCount);
+
+          // If we didn't get enough questions, pad with fallback questions
+          if (questions.length < questionCount) {
+            const fallbackQuestions = QuizAPI.getFallbackQuestions();
+            while (questions.length < questionCount && fallbackQuestions.length > 0) {
+              questions.push(fallbackQuestions.pop());
+            }
+          }
+
+          // Render quiz
+          renderQuiz(questions, `${category} Quiz`);
+        } catch (error) {
+          console.error('Error generating quiz:', error);
+          quizSection.innerHTML = `
+            <div class="card">
+              <div class="card-body text-center py-5">
+                <i class="fas fa-exclamation-triangle text-warning fa-2x mb-3"></i>
+                <p>Failed to load quiz. Please try again.</p>
+                <button class="btn btn-primary" onclick="showDashboard()">
+                  <i class="fas fa-home me-2"></i> Back to Dashboard
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Render the quiz questions
+      function renderQuiz(questions, title) {
+        const quizSection = document.getElementById("quiz-section");
+        quizSection.innerHTML = `
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h3>${title}</h3>
+              <div class="text-muted" id="quiz-timer">Time: 10:00</div>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" id="quiz-progress" role="progressbar" style="width: 0%"></div>
+            </div>
+            <div class="card-body" id="quiz-questions">
+              <!-- Questions will be inserted here -->
+            </div>
+            <div class="card-footer">
+              <button id="submit-quiz" class="btn btn-primary w-100">Submit Quiz</button>
+            </div>
+          </div>
+        `;
+
+        // Render questions
+        const questionsContainer = document.getElementById("quiz-questions");
+        questions.forEach((q, index) => {
+          const questionHtml = `
+            <div class="question mb-4" data-question-index="${index}">
+              <h5>Question ${index + 1}: ${q.question}</h5>
+              <div class="options">
+                ${q.options
+              .map(
+                (option, i) => `
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="question-${index}" 
+                           id="q${index}-option${i}" value="${option}">
+                    <label class="form-check-label" for="q${index}-option${i}">
+                      ${option}
+                    </label>
+                  </div>
+                `
+              )
+              .join("")}
+              </div>
+            </div>
+          `;
+          questionsContainer.innerHTML += questionHtml;
+        });
+
+        // Start timer (10 minutes)
+        startTimer(10, () => {
+          calculateScore(questions, title);
+        });
+
+        // Submit handler
+        document.getElementById("submit-quiz").addEventListener("click", () => {
+          calculateScore(questions, title);
+        });
+      }
+
+      // Timer function
+      function startTimer(minutes, callback) {
+        let time = minutes * 60;
+        const timerElement = document.getElementById("quiz-timer");
+
+        const timer = setInterval(() => {
+          const mins = Math.floor(time / 60);
+          const secs = time % 60;
+          timerElement.textContent = `Time: ${mins}:${secs < 10 ? "0" : ""
+            }${secs}`;
+
+          // Update progress bar
+          const progressPercent = 100 - (time / (minutes * 60) * 100);
+          document.getElementById("quiz-progress").style.width = `${progressPercent}%`;
+
+          if (time <= 0) {
+            clearInterval(timer);
+            callback();
+          }
+          time--;
+        }, 1000);
+
+        return timer;
+      }
+
+      // Calculate quiz score
+      function calculateScore(questions, title) {
+        let score = 0;
+        const userAnswers = [];
+
+        questions.forEach((q, index) => {
+          const selectedOption = document.querySelector(
+            `input[name="question-${index}"]:checked`
+          );
+          const isCorrect = selectedOption && selectedOption.value === q.answer;
+
+          if (isCorrect) score++;
+          userAnswers.push({
+            question: q.question,
+            userAnswer: selectedOption ? selectedOption.value : "Not answered",
+            correctAnswer: q.answer,
+            isCorrect,
+          });
+        });
+
+        showResults(score, questions.length, title, userAnswers);
+      }
+
+      // Show quiz results
+      function showResults(score, total, title, userAnswers) {
+        const percentage = Math.round((score / total) * 100);
+        const quizSection = document.getElementById("quiz-section");
+
+        quizSection.innerHTML = `
+          <div class="card">
+            <div class="card-header">
+              <h3>${title} - Results</h3>
+            </div>
+            <div class="card-body">
+              <div class="text-center mb-4">
+                <h4 class="${percentage >= 70
+            ? "text-success"
+            : percentage >= 50
+              ? "text-warning"
+              : "text-danger"
+          }">
+                  Score: ${score}/${total} (${percentage}%)
+                </h4>
+                <div class="progress my-3" style="height: 20px">
+                  <div class="progress-bar ${percentage >= 70
+            ? "bg-success"
+            : percentage >= 50
+              ? "bg-warning"
+              : "bg-danger"
+          }" 
+                       role="progressbar" style="width: ${percentage}%">
+                  </div>
+                </div>
+              </div>
+              
+              <h5>Question Review:</h5>
+              <div id="answers-review" class="mb-4"></div>
+              
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary" onclick="showDashboard()">
+                  <i class="fas fa-home me-2"></i> Back to Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Show answers review
+        const reviewContainer = document.getElementById("answers-review");
+        userAnswers.forEach((answer, index) => {
+          reviewContainer.innerHTML += `
+            <div class="answer-review mb-3 p-3 rounded ${answer.isCorrect
+              ? "bg-success bg-opacity-10"
+              : "bg-danger bg-opacity-10"
+            }">
+              <h6>Q${index + 1}: ${answer.question}</h6>
+              <p class="mb-1">Your answer: ${answer.userAnswer}</p>
+              <p class="mb-0">Correct answer: ${answer.correctAnswer}</p>
+            </div>
+          `;
+        });
+        // Add event listener for Try Again button
+
+        document.getElementById("try-again-btn").addEventListener("click", function () {
+          generateQuiz(quizId); // You'll need to track the current quiz ID
+        });
+      }
+      function showDashboard() {
+        // Hide quiz section
+        document.getElementById("quiz-section").classList.remove("active");
+
+        // Show dashboard section
+        document.getElementById("dashboard-section").classList.add("active");
+
+        // Refresh recommendations
+        generateAIRecommendations();
+      }
+
+      // Quiz API Service
+      const QuizAPI = {
+        async getQuestions(category, difficulty, amount = 10) {
+          // Map your quiz categories to Open Trivia DB categories
+          const categoryMap = {
+            Science: {
+              Easy: 17, // Science: Nature
+              Medium: 18, // Science: Computers
+              Hard: 30, // Science: Gadgets
+            },
+            History: 23,
+            Literature: 10,
+            Mathematics: 19, // Science: Mathematics
+          };
+
+          try {
+            // Determine the category ID
+            let categoryId;
+            if (typeof categoryMap[category] === "object") {
+              categoryId =
+                categoryMap[category][difficulty] ||
+                categoryMap[category]["Medium"];
+            } else {
+              categoryId = categoryMap[category];
+            }
+
+            let url = `https://opentdb.com/api.php?amount=${amount}`;
+
+            if (categoryId) url += `&category=${categoryId}`;
+            if (difficulty) url += `&difficulty=${difficulty.toLowerCase()}`;
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to fetch questions");
+
+            const data = await response.json();
+
+            // If we didn't get enough questions, try without difficulty filter
+            if (data.results.length < amount && difficulty) {
+              console.log(
+                `Not enough ${difficulty} questions, trying any difficulty`
+              );
+              return this.getQuestions(category, "", amount);
+            }
+
+            return data.results.map((q) => ({
+              question: decodeHtmlEntities(q.question),
+              options: [
+                ...q.incorrect_answers.map((a) => decodeHtmlEntities(a)),
+                decodeHtmlEntities(q.correct_answer),
+              ].sort(() => Math.random() - 0.5),
+              answer: q.correct_answer,
+            }));
+          } catch (error) {
+            console.error("Error fetching questions:", error);
+            return this.getFallbackQuestions();
+          }
+        },
+
+        getFallbackQuestions() {
+          // Fallback questions if API fails
+          return [
+            {
+              question: "What is the capital of France?",
+              options: ["London", "Paris", "Berlin", "Madrid"],
+              answer: "Paris",
+            },
+            {
+              question: "Which planet is known as the Red Planet?",
+              options: ["Venus", "Mars", "Jupiter", "Saturn"],
+              answer: "Mars",
+            },
+            {
+              question: "What is 2 + 2?",
+              options: ["3", "4", "5", "6"],
+              answer: "4",
+            },
+            {
+              question: "Who wrote 'Romeo and Juliet'?",
+              options: [
+                "Charles Dickens",
+                "William Shakespeare",
+                "Jane Austen",
+                "Mark Twain",
+              ],
+              answer: "William Shakespeare",
+            },
+          ];
+        },
+      };
+
+      // Helper function to decode HTML entities
+      function decodeHtmlEntities(text) {
+        const textArea = document.createElement("textarea");
+        textArea.innerHTML = text;
+        return textArea.value;
+      }
+
+      // Improved refresh recommendations function
+      function generateAIRecommendations() {
+        // AI Recommended Quizzes Data
+        const categories = ['Science', 'History', 'Literature', 'Mathematics'];
+        const difficulties = ['Easy', 'Medium', 'Hard'];
+
+        const recommendedQuizzes = Array.from({ length: 4 }, (_, i) => {
+          const category = categories[Math.floor(Math.random() * categories.length)];
+          const difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+          const questionCount = difficulty === 'Hard' ? 15 : difficulty === 'Medium' ? 12 : 10;
+          const time = difficulty === 'Hard' ? '15 min' : difficulty === 'Medium' ? '12 min' : '10 min';
+
+          return {
+            id: `ai-rec-${Date.now()}-${i}`,
+            title: `${category} Quiz - ${difficulty}`,
+            category: category,
+            difficulty: difficulty,
+            questions: questionCount,
+            time: time,
+            description: `Test your ${category.toLowerCase()} knowledge with ${difficulty.toLowerCase()} questions`,
+            image: `/api/placeholder/400/200?text=${category.replace(' ', '+')}`
+          };
+        });
+
+        // Get the container where recommendations will be inserted
+        const recommendationsContainer = document.querySelector(".ai-recommendations-carousel");
+
+        // Clear previous recommendations with fade out animation
+        recommendationsContainer.style.opacity = '0';
+        setTimeout(() => {
+          recommendationsContainer.innerHTML = "";
+
+          // Add each recommended quiz as a card
+          recommendedQuizzes.forEach((quiz, index) => {
+            const quizCard = document.createElement("div");
+            quizCard.className = "col-12 col-md-6 col-lg-3"; // Changed to use proper grid columns
+            quizCard.innerHTML = `
+                <div class="card ai-quiz-card h-100" data-quiz-id="${quiz.id}">
+                    <div class="position-relative top-0">
+                        <span class="badge ${quiz.difficulty === "Hard"
+                ? "bg-danger"
+                : quiz.difficulty === "Medium"
+                  ? "bg-warning"
+                  : "bg-success"
+              }">${quiz.difficulty}</span>
+                        <div class="ai-badge">
+                            <i class="fas fa-robot text-info me-1"></i> AI Recommended
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">${quiz.title}</h5>
+                        <p class="card-text text-muted small mb-2">${quiz.category}</p>
+                        <p class="card-text small">${quiz.description}</p>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span><i class="fas fa-question-circle me-1"></i> ${quiz.questions} questions</span>
+                            <span><i class="fas fa-clock me-1"></i> ${quiz.time}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <button class="btn btn-primary w-100 start-quiz-btn">
+                            <i class="fas fa-play me-2"></i> Start Quiz
+                        </button>
+                    </div>
+                </div>
+              `;
+            recommendationsContainer.appendChild(quizCard);
+
+            // Add animation to new cards
+            const card = quizCard.querySelector('.ai-quiz-card');
+            card.style.animation = `fadeInUp 0.5s ${index * 0.1}s forwards`;
+            card.style.opacity = "0";
+          });
+
+          recommendationsContainer.style.opacity = '1';
+        }, 500);
+      }
+
+      // Improved event delegation for quiz buttons
+      document.addEventListener("click", function (e) {
+        // Start quiz button
+        if (e.target.closest(".start-quiz-btn")) {
+          e.preventDefault();
+          const card = e.target.closest(".ai-quiz-card");
+          if (card) {
+            const quizId = card.getAttribute("data-quiz-id");
+            const quizTitle = card.querySelector(".card-title").textContent;
+            const quizTime = card.querySelector(".fa-clock").parentElement.textContent;
+            const quizQuestions = card.querySelector(".fa-question-circle").parentElement.textContent;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById("quizStartModal"));
+            document.getElementById("quizTitle").textContent = quizTitle;
+            document.getElementById("quizDetails").textContent = `${quizQuestions} • ${quizTime}`;
+            document.getElementById("termsCheck").checked = false;
+
+            modal.show();
+
+            // Clear any previous click handlers
+            const confirmBtn = document.getElementById("confirmStart");
+            confirmBtn.onclick = null;
+
+            // Add new click handler
+            confirmBtn.addEventListener("click", function () {
+              if (!document.getElementById("termsCheck").checked) {
+                alert("Please agree to the quiz terms before starting");
+                return;
+              }
+
+              confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Starting...';
+              confirmBtn.disabled = true;
+
+              // Start the quiz
+              generateQuiz(quizId);
+
+              // Close the modal after a short delay
+              setTimeout(() => {
+                modal.hide();
+                confirmBtn.innerHTML = 'Start Quiz <i class="fas fa-arrow-right ms-2"></i>';
+                confirmBtn.disabled = false;
+              }, 1000);
+            });
+          }
+        }
+
+        // Refresh recommendations button
+        if (e.target.closest("#refresh-recommendations")) {
+          e.preventDefault();
+          const btn = e.target.closest("#refresh-recommendations");
+          btn.innerHTML = '<i class="fas fa-sync fa-spin me-2"></i> Refreshing...';
+          btn.disabled = true;
+
+          generateAIRecommendations();
+
+          // Reset button after animation completes
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-sync me-2"></i> Refresh Recommendations';
+            btn.disabled = false;
+          }, 2000);
+        }
+      });
+
+      // Navigation
+      document.querySelectorAll(".nav-link[data-section]").forEach((link) => {
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          // Remove active class from all nav links
+          document
+            .querySelectorAll(".nav-link")
+            .forEach((el) => el.classList.remove("active"));
+          // Add active class to clicked nav link
+          this.classList.add("active");
+
+          // Get target section ID from data attribute
+          const sectionId = this.getAttribute("data-section");
+
+          // Hide all content sections
+          document.querySelectorAll(".content-section").forEach((section) => {
+            section.classList.remove("active");
+          });
+
+          // Show target section
+          const targetSection = document.getElementById(sectionId);
+          if (targetSection) {
+            targetSection.classList.add("active");
+          }
+        });
+      });
+
+      // Initialize progress bars with animation
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(() => {
+          const progressBars = document.querySelectorAll(".progress-animate");
+          progressBars[0].style.width = "92%";
+          progressBars[1].style.width = "78%";
+          progressBars[2].style.width = "65%";
+          progressBars[3].style.width = "88%";
+        }, 500);
+
+        // Generate initial recommendations
+        generateAIRecommendations();
+      });
+
+      // Tab controls for profile section
+      document.querySelectorAll(".tab-underline").forEach((tab) => {
+        tab.addEventListener("click", function (e) {
+          e.preventDefault();
+          document
+            .querySelectorAll(".tab-underline")
+            .forEach((t) => t.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      // Toggle sidebar on mobile
+      document.querySelectorAll(".sidebar-toggle").forEach((button) => {
+        button.addEventListener("click", function () {
+          const sidebar = document.querySelector(".sidebar");
+          const overlay = document.querySelector(".main-content-overlay");
+
+          // Toggle active class for all buttons
+          document.querySelectorAll(".sidebar-toggle").forEach((btn) => {
+            btn.classList.toggle("active");
+          });
+
+          sidebar.classList.toggle("active");
+          overlay.classList.toggle("active");
+        });
+      });
+
+      // Overlay click handler
+      document
+        .querySelector(".main-content-overlay")
+        .addEventListener("click", function () {
+          document.querySelectorAll(".sidebar-toggle").forEach((btn) => {
+            btn.classList.remove("active");
+          });
+          document.querySelector(".sidebar").classList.remove("active");
+          this.classList.remove("active");
+        });
+
+      // Window resize handler
+      window.addEventListener("resize", () => {
+        if (window.innerWidth >= 992) {
+          document.querySelectorAll(".sidebar-toggle").forEach((btn) => {
+            btn.classList.remove("active");
+          });
+          document.querySelector(".sidebar").classList.remove("active");
+          document
+            .querySelector(".main-content-overlay")
+            .classList.remove("active");
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', function () {
+        {% if stats.ai_stats.genres %}
+        // Get data from Django template variables
+        const topics = [];
+        const quizCounts = [];
+        const avgScores = [];
+
+        {% for topic, data in stats.ai_stats.genres.items %}
+        topics.push('{{ topic }}');
+        quizCounts.push({{ data.count }});
+      avgScores.push({{ data.avg_score }});
+      {% endfor %}
+
+      // Chart configuration
+      const ctx = document.getElementById('topicChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: topics,
+          datasets: [{
+            label: 'Number of Quizzes',
+            data: quizCounts,
+            backgroundColor: 'rgba(74, 107, 255, 0.7)',
+            borderColor: 'rgba(74, 107, 255, 1)',
+            borderWidth: 1
+          }, {
+            label: 'Average Score (%)',
+            data: avgScores,
+            type: 'line',
+            borderColor: '#00c9a7',
+            backgroundColor: 'transparent',
+            tension: 0.4,
+            yAxisID: 'y-axis-2'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Quizzes'
+              }
+            },
+            'y-axis-2': {
+              position: 'right',
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Average Score (%)'
+              },
+              grid: {
+                drawOnChartArea: false
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          }
+        }
+      });
+      {% endif %}
+  });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/quiz.css' %}">
+    <style>
+        .quiz-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .quiz-option {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            width: 300px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .quiz-option:hover {
+            transform: translateY(-10px);
+        }
+        .quiz-option h2 {
+            color: var(--secondary);
+        }
+        .quiz-option p {
+            margin: 15px 0;
+            min-height: 60px;
+        }
+        .quiz-option a {
+            display: inline-block;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiz Application</h1>
+            <p>Choose the type of quiz you want to take</p>
+        </header>
+
+        <div class="quiz-options">
+            <div class="quiz-option">
+                <h2>Custom Quiz</h2>
+                <p>Create a quiz using questions from the Open Trivia Database API with various categories and difficulty levels.</p>
+                <a href="/customquiz/">Start Custom Quiz</a>
+            </div>
+            
+            <div class="quiz-option">
+                <h2>Create Your Own Quiz</h2>
+                <p>Build a completely custom quiz by creating your own questions and answers from scratch.</p>
+                <a href="/createownquiz/">Create Own Quiz</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

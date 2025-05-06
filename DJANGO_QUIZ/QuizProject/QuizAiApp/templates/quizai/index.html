@@ -1,0 +1,55 @@
+{% extends "QuizAiApp/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg rounded-lg mb-5">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0 text-center">Welcome to TOBBI 🤖</h1>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <img src="{% static 'quizai/img/tobbi-logo.png' %}" alt="TOBBI Logo" class="img-fluid mb-3" style="max-width: 200px;" onerror="this.src='{% static 'img/robot.png' %}'; this.onerror=null;">
+                        <p class="lead">Your AI-powered Quiz Generator</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <p>TOBBI uses advanced AI technology to generate educational quizzes on any topic. Create custom quizzes, challenge yourself, and test your knowledge!</p>
+                    </div>
+
+                    {% if is_admin %}
+                    <div class="alert alert-info mb-4" role="alert">
+                        <h5 class="alert-heading">Admin Options</h5>
+                        <p>As an administrator, you have access to configure the TOBBI API settings.</p>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <a href="/admin/QuizAiApp/tobbiapiconfig/" class="btn btn-sm btn-outline-primary">Manage API Settings</a>
+                            <a href="/admin/QuizAiApp/tobbiapiconfig/test-tobbi-api/" class="btn btn-sm btn-outline-success">Test API Connection</a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'quizai:generate' %}" class="btn btn-primary btn-lg">Create New Quiz</a>
+                        <div class="row">
+                            <div class="col-sm-6 mb-2 mb-sm-0">
+                                <a href="{% url 'quizai:start_quiz' %}" class="btn btn-outline-secondary btn-block">Start Demo Quiz</a>
+                            </div>
+                            <div class="col-sm-6">
+                                <a href="{% url 'quiz:dashboard' %}" class="btn btn-outline-info btn-block">Return to Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <small class="text-muted">TOBBI is powered by advanced AI technology</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,506 @@
+{% extends 'base.html' %}
+{% load quiz_extras %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #4a6bff;
+    --secondary: #00c9a7;
+    --dark: #1a1a2e;
+    --light: #f8f9fa;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --darker: #0f0f1a;
+    --card-bg: rgba(34, 34, 59, 0.8);
+    --sidebar-bg: rgba(26, 26, 46, 0.95);
+  }
+
+  body {
+    background-color: var(--dark);
+    color: var(--light);
+    perspective: 1000px;
+  }
+
+  #particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
+
+  .card {
+    border: none;
+    border-radius: 12px;
+    background-color: var(--card-bg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--light);
+    margin-bottom: 1.5rem;
+  }
+
+  .card:hover {
+    transform: translateY(-5px) rotateX(3deg);
+    box-shadow: 0 15px 30px rgba(74, 107, 255, 0.15);
+  }
+
+  .card-header {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--light);
+  }
+
+  .card-footer {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 5px var(--primary);
+  }
+
+  .quiz-header {
+    background: linear-gradient(135deg, rgba(74, 107, 255, 0.15), rgba(0, 201, 167, 0.05));
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quiz-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(74, 107, 255, 0.15), transparent 70%);
+    transform: rotate(30deg);
+    z-index: 0;
+  }
+
+  .quiz-header .content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .badge-difficulty {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 8px 15px;
+    font-weight: 500;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+  }
+
+  .question-card {
+    background: linear-gradient(145deg, rgba(35, 36, 66, 0.6), rgba(26, 26, 46, 0.8));
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s ease;
+  }
+
+  .question-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .question-number {
+    background: rgba(74, 107, 255, 0.2);
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+  }
+
+  .option-item {
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .option-item.selected {
+    background: rgba(74, 107, 255, 0.2);
+    border-left: 3px solid var(--primary);
+  }
+
+  .quiz-progress {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .quiz-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  .timer {
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+  }
+
+  .timer i {
+    color: var(--primary);
+    margin-right: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(to right, var(--primary), #6a5cff);
+    border: none;
+    box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+    transition: all 0.3s ease;
+    color: white;
+    border-radius: 25px;
+    padding: 8px 20px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+    background: linear-gradient(to right, #5a7bff, var(--primary));
+  }
+
+  .btn-outline-primary {
+    border-color: var(--primary);
+    color: var(--primary);
+    border-radius: 25px;
+    padding: 8px 20px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+
+  #timeElapsed {
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Quiz Container -->
+    <div class="col-lg-8 mx-auto">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0 glow-text">{{ quiz.title }}</h4>
+          <div class="d-flex align-items-center">
+            {% if is_challenge %}
+            <span class="badge bg-danger me-2">
+              <i class="fas fa-fire me-1"></i> Challenge
+            </span>
+            {% endif %}
+            <span class="badge {% if quiz.difficulty == 'Hard' %}bg-danger{% elif quiz.difficulty == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
+              {{ quiz.difficulty }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <!-- Quiz Progress -->
+          <div class="timer">
+            <i class="fas fa-clock"></i>
+            <span id="timeElapsed">00:00</span>
+          </div>
+          
+          <div class="quiz-progress">
+            <div class="quiz-progress-bar" id="progressBar" style="width: 0%"></div>
+          </div>
+          
+          <div class="d-flex justify-content-between mb-3">
+            <span id="questionCounter">Question 1 of {{ quiz.questions.all|length }}</span>
+            <span>{{ quiz.category }}</span>
+          </div>
+          
+          <!-- Question Content -->
+          <div id="questionContainer">
+            <!-- Question will be loaded dynamically -->
+          </div>
+          
+          <div class="navigation-buttons">
+            <button id="prevBtn" class="btn btn-outline-primary" onclick="prevQuestion()">
+              <i class="fas fa-arrow-left me-2"></i> Previous
+            </button>
+            <button id="nextBtn" class="btn btn-primary" onclick="nextQuestion()">
+              Next <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="card-footer text-center">
+          <form id="quizForm" method="POST" action="{% url 'quiz:submit_quiz' quiz.id %}">
+            {% csrf_token %}
+            <input type="hidden" id="quizTimeElapsed" name="time_elapsed" value="0">
+            <button type="button" id="finishBtn" class="btn btn-success d-none">
+              <i class="fas fa-check me-2"></i> Submit Quiz
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  // Quiz Variables
+  let currentQuestionIndex = 0;
+  let userAnswers = {};
+  let quizData = [];
+  let questions = [];
+  let startTime = new Date();
+  let timerInterval;
+  
+  // Setup quiz data from Django template
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize particles.js
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: '#4a6bff' },
+        shape: { type: 'circle' },
+        opacity: { value: 0.1, random: true },
+        size: { value: 3, random: true },
+        line_linked: { enable: true, distance: 150, color: '#4a6bff', opacity: 0.1, width: 1 },
+        move: { enable: true, speed: 1, direction: 'none', random: true, straight: false, out_mode: 'out' }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+        modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+      },
+      retina_detect: true
+    });
+    
+    // Prepare quiz data
+    {% for question in quiz.questions.all %}
+    questions.push({
+      id: {{ question.id }},
+      question_text: "{{ question.question_text|escapejs }}",
+      choices: [
+        {% for choice in question.choices.all %}
+        {
+          id: {{ choice.id }},
+          choice_text: "{{ choice.choice_text|escapejs }}",
+          is_correct: {{ choice.is_correct|lower }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    });
+    {% endfor %}
+    
+    quizData = questions;
+    
+    // Initialize quiz
+    initQuiz();
+  });
+  
+  // Start the timer
+  function startTimer() {
+    startTime = new Date();
+    timerInterval = setInterval(updateTimer, 1000);
+  }
+  
+  // Update the timer display
+  function updateTimer() {
+    const currentTime = new Date();
+    const timeDiff = Math.floor((currentTime - startTime) / 1000); // in seconds
+    
+    const minutes = Math.floor(timeDiff / 60).toString().padStart(2, '0');
+    const seconds = (timeDiff % 60).toString().padStart(2, '0');
+    
+    document.getElementById('timeElapsed').textContent = `${minutes}:${seconds}`;
+    document.getElementById('quizTimeElapsed').value = timeDiff;
+  }
+  
+  // Initialize the quiz
+  function initQuiz() {
+    currentQuestionIndex = 0;
+    userAnswers = {};
+    
+    // Load the first question
+    loadQuestion(currentQuestionIndex);
+    
+    // Start the timer
+    startTimer();
+    
+    // Update navigation buttons
+    updateNavigationButtons();
+  }
+  
+  // Load a question by index
+  function loadQuestion(index) {
+    const questionContainer = document.getElementById('questionContainer');
+    const question = quizData[index];
+    
+    if (!question) {
+      console.error('Question not found at index', index);
+      return;
+    }
+    
+    // Create question card
+    let html = `
+      <div class="question-card">
+        <div class="question-number">Question ${index + 1}</div>
+        <h5 class="mb-3">${question.question_text}</h5>
+        <div class="options">
+    `;
+    
+    // Add options
+    if (question.choices && question.choices.length > 0) {
+      question.choices.forEach((choice) => {
+        const questionKey = `question_${question.id}`;
+        const isSelected = userAnswers[questionKey] === choice.id.toString();
+        html += `
+          <div class="option-item ${isSelected ? 'selected' : ''}" onclick="selectOption(event, ${question.id}, ${choice.id})">
+            ${choice.choice_text}
+          </div>
+        `;
+      });
+    }
+    
+    html += `
+        </div>
+      </div>
+    `;
+    
+    questionContainer.innerHTML = html;
+    
+    // Update progress and question counter
+    updateProgress();
+  }
+  
+  // Select an option
+  function selectOption(event, questionId, choiceId) {
+    userAnswers[`question_${questionId}`] = choiceId.toString();
+    
+    // Update UI to show selected option
+    const options = document.querySelectorAll('.option-item');
+    options.forEach(option => {
+      option.classList.remove('selected');
+    });
+    
+    // Add selected class to the clicked option
+    event.currentTarget.classList.add('selected');
+  }
+  
+  // Go to the next question
+  function nextQuestion() {
+    if (currentQuestionIndex < quizData.length - 1) {
+      currentQuestionIndex++;
+      loadQuestion(currentQuestionIndex);
+      updateNavigationButtons();
+    } else {
+      // Show finish button
+      document.getElementById('nextBtn').classList.add('d-none');
+      document.getElementById('finishBtn').classList.remove('d-none');
+      
+      // Prepare to submit
+      document.getElementById('finishBtn').addEventListener('click', finishQuiz);
+    }
+  }
+  
+  // Go to the previous question
+  function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+      currentQuestionIndex--;
+      loadQuestion(currentQuestionIndex);
+      updateNavigationButtons();
+      
+      // Hide finish button if shown
+      document.getElementById('nextBtn').classList.remove('d-none');
+      document.getElementById('finishBtn').classList.add('d-none');
+    }
+  }
+  
+  // Update navigation buttons state
+  function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    prevBtn.disabled = currentQuestionIndex === 0;
+    
+    if (currentQuestionIndex === quizData.length - 1) {
+      nextBtn.innerHTML = 'Finish <i class="fas fa-check ms-2"></i>';
+    } else {
+      nextBtn.innerHTML = 'Next <i class="fas fa-arrow-right ms-2"></i>';
+    }
+  }
+  
+  // Update progress bar
+  function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const questionCounter = document.getElementById('questionCounter');
+    
+    const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+    progressBar.style.width = `${progress}%`;
+    
+    questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+  }
+  
+  // Finish the quiz
+  function finishQuiz() {
+    // Stop the timer
+    clearInterval(timerInterval);
+    
+    // Get the form
+    const form = document.getElementById('quizForm');
+    
+    // Remove any existing dynamically added inputs
+    document.querySelectorAll('.dynamic-input').forEach(input => input.remove());
+    
+    // Add each answer as a hidden input field with the correct name
+    for (const [key, value] of Object.entries(userAnswers)) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;  // This should be in the format 'question_X'
+      input.value = value;
+      input.className = 'dynamic-input';
+      form.appendChild(input);
+    }
+    
+    // Submit the form
+    form.submit();
+  }
+</script>
+{% endblock %} 

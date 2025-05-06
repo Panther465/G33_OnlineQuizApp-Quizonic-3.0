@@ -1,0 +1,657 @@
+{% load quiz_extras %}
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Quiz - QuizMaster</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Animation Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --secondary: #00c9a7;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --darker: #0f0f1a;
+            --card-bg: rgba(34, 34, 59, 0.8);
+            --sidebar-bg: rgba(26, 26, 46, 0.95);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            perspective: 1000px;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4);
+            height: 100vh;
+            position: fixed;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 24px;
+            padding: 20px 15px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(74, 107, 255, 0.3);
+        }
+
+        .text-muted {
+            --bs-text-opacity: 1;
+            color: #a0a8bd !important;
+        }
+
+        .logo i {
+            animation: pulse 2s infinite;
+        }
+
+        .nav-link {
+            color: var(--light);
+            border-radius: 8px;
+            margin: 5px 10px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: linear-gradient(90deg,
+                    rgba(74, 107, 255, 0.2),
+                    transparent);
+            color: white;
+            transform: translateX(5px);
+            border-left: 3px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(74, 107, 255, 0.2);
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            background-color: var(--card-bg);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--light);
+        }
+
+        .card-header {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--light);
+        }
+
+        .card-footer {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .form-control,
+        .form-select {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(74, 107, 255, 0.25);
+            color: var(--light);
+        }
+        
+        /* Fix for white tbody */
+        tbody, tbody tr, tbody td {
+            background-color: var(--card-bg) !important;
+            color: var(--light) !important;
+        }
+        
+        /* Override Bootstrap's default white background */
+        .table > :not(caption) > * > * {
+            background-color: transparent !important;
+            color: var(--light) !important;
+            box-shadow: none !important;
+        }
+
+        .question-card {
+            border-left: 4px solid var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        /* Style list-group-items to match theme */
+        .list-group-item {
+            background-color: rgba(26, 26, 46, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--light) !important;
+        }
+        
+        .list-group-item.bg-success {
+            background-color: rgba(40, 167, 69, 0.2) !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), #6a5cff);
+            border: none;
+            box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+            background: linear-gradient(to right, #5a7bff, var(--primary));
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                left: -100%;
+                width: 280px;
+                backdrop-filter: blur(10px);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .sidebar-toggle {
+                display: inline-block !important;
+            }
+
+            .main-content-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 99;
+                display: none;
+            }
+
+            .main-content-overlay.active {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+
+    <div class="main-content-overlay"></div>
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 sidebar d-flex flex-column flex-shrink-0 p-3">
+           <div class="logo mb-4"><img src="{% static 'images/logo.png' %}" alt="Quizonic Logo" style="height: 30px; width: auto;"></div>
+
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a href="{% url 'quiz:dashboard' %}" class="nav-link">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'quiz:created_quizzes' %}" class="nav-link">
+                    <i class="fas fa-folder me-2"></i>Created Quizzes
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'quiz:create_quiz' %}" class="nav-link">
+                    <i class="fas fa-plus-circle me-2"></i>Create Quiz
+                </a>
+            </li>
+        </ul>
+        <div class="mt-auto text-center pb-3">
+            {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" class="rounded-circle" alt="User" width="32" height="32" />
+            {% else %}
+            <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center"
+                style="width: 32px; height: 32px;">
+                <span class="text-white">{{ request.user.username|slice:":1" }}</span>
+            </div>
+            {% endif %}
+            <span class="ms-2">{{ request.user.username }}</span>
+            <a href="{% url 'quiz:logout' %}" class="d-block text-decoration-none mt-2 text-muted small">
+                <i class="fas fa-sign-out-alt me-1"></i>Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9 col-lg-10 ms-auto px-4 py-3">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-primary me-3 d-lg-none sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h2 class="fw-bold mb-0">Edit Quiz: {{ quiz.title }}</h2>
+            <div class="ms-auto">
+                <a href="{% url 'quiz:created_quizzes' %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-arrow-left me-2"></i> Back to My Quizzes
+                </a>
+                <a href="{% url 'quiz:view_quiz' quiz.id %}" class="btn btn-primary">
+                    <i class="fas fa-eye me-2"></i> View Quiz
+                </a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Quiz Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'quiz:edit_quiz' quiz.id %}">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-lg-8">
+                            <label for="title" class="form-label">Quiz Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ quiz.title }}"
+                                required>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-check form-switch mt-4">
+                                <input class="form-check-input" type="checkbox" id="is_public" name="is_public" {% if quiz.is_public %}checked{% endif %}>
+                                <label class="form-check-label" for="is_public">Make quiz public</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description"
+                            rows="3">{{ quiz.description }}</textarea>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" disabled>Select a category</option>
+                                <option value="Science" {% if quiz.category == 'Science' %}selected{% endif %}>Science
+                                </option>
+                                <option value="History" {% if quiz.category == 'History' %}selected{% endif %}>History
+                                </option>
+                                <option value="Literature" {% if quiz.category == 'Literature' %}selected{% endif %}>
+                                    Literature</option>
+                                <option value="Mathematics" {% if quiz.category == 'Mathematics' %}selected{% endif %}>
+                                    Mathematics</option>
+                                <option value="General" {% if quiz.category == 'General' %}selected{% endif %}>General
+                                    Knowledge</option>
+                                <option value="Other" {% if quiz.category == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="difficulty" class="form-label">Difficulty Level</label>
+                            <select class="form-select" id="difficulty" name="difficulty" required>
+                                <option value="" disabled>Select difficulty</option>
+                                <option value="Easy" {% if quiz.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+                                <option value="Medium" {% if quiz.difficulty == 'Medium' %}selected{% endif %}>Medium
+                                </option>
+                                <option value="Hard" {% if quiz.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Questions</h5>
+                <a href="#" class="btn btn-sm btn-primary" id="add-question-btn">
+                    <i class="fas fa-plus me-2"></i> Add Question
+                </a>
+            </div>
+            <div class="card-body">
+                {% if quiz.questions.all %}
+                {% for question in quiz.questions.all %}
+                <div class="card question-card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Question {{ forloop.counter }}</h6>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary edit-question-btn"
+                                data-question-id="{{ question.id }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-question-btn"
+                                data-question-id="{{ question.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ question.question_text }}</p>
+                        <ul class="list-group mt-3">
+                            {% for choice in question.choices.all %}
+                            <li class="list-group-item {% if choice.is_correct %}bg-success bg-opacity-10{% endif %}">
+                                {{ choice.choice_text }}
+                                {% if choice.is_correct %}
+                                <span class="badge bg-success float-end">Correct Answer</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-question-circle fa-4x text-muted mb-3"></i>
+                    <h4>No Questions Added Yet</h4>
+                    <p class="text-muted">Add questions to your quiz to make it complete.</p>
+                    <button class="btn btn-primary mt-3" id="add-first-question-btn">
+                        <i class="fas fa-plus me-2"></i> Add Your First Question
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing questions -->
+    <div class="modal fade" id="questionModal" tabindex="-1" aria-labelledby="questionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="questionModalLabel">Add Question</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Question form will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
+    <script>
+        // Initialize particles.js
+        particlesJS("particles-js", {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#4a6bff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#4a6bff",
+                    opacity: 0.2,
+                    width: 1,
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false,
+                },
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "grab" },
+                    onclick: { enable: true, mode: "push" },
+                    resize: true,
+                },
+                modes: {
+                    grab: { distance: 140, line_linked: { opacity: 0.8 } },
+                    push: { particles_nb: 4 },
+                },
+            },
+            retina_detect: true,
+        });
+
+        // Toggle sidebar on mobile
+        document.querySelectorAll(".sidebar-toggle").forEach((button) => {
+            button.addEventListener("click", function () {
+                const sidebar = document.querySelector(".sidebar");
+                const overlay = document.querySelector(".main-content-overlay");
+
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+                button.classList.toggle("active");
+            });
+        });
+
+        // Overlay click handler
+        document.querySelector(".main-content-overlay").addEventListener("click", function () {
+            document.querySelector(".sidebar").classList.remove("active");
+            document.querySelector(".sidebar-toggle").classList.remove("active");
+            this.classList.remove("active");
+        });
+
+        // Add question button handlers
+        document.getElementById('add-question-btn').addEventListener('click', function () {
+            // Open modal with empty form
+            const modal = new bootstrap.Modal(document.getElementById('questionModal'));
+            
+            // Reset modal title
+            document.getElementById('questionModalLabel').textContent = 'Add Question';
+            
+            // Load empty form HTML
+            const modalBody = document.querySelector('#questionModal .modal-body');
+            modalBody.innerHTML = `
+                <form id="question-form" method="post" action="{% url 'quiz:add_question' quiz.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="question_text" class="form-label">Question</label>
+                        <textarea class="form-control" id="question_text" name="question_text" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="points" class="form-label">Points</label>
+                        <input type="number" class="form-control" id="points" name="points" value="1" min="1" max="10">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Choices (select one correct answer)</label>
+                        <div class="choices-container">
+                            ${[1, 2, 3, 4].map(i => `
+                                <div class="choice-item mb-2 d-flex">
+                                    <div class="form-check me-2 pt-2">
+                                        <input class="form-check-input" type="radio" name="is_correct" id="choice_radio_${i}" value="${i}" ${i === 1 ? 'checked' : ''}>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <input type="text" class="form-control" name="choice_${i}" placeholder="Choice ${i}" required>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Question</button>
+                    </div>
+                </form>
+            `;
+            
+            modal.show();
+        });
+
+        // If no questions yet, handle the add first question button too
+        const addFirstQuestionBtn = document.getElementById('add-first-question-btn');
+        if (addFirstQuestionBtn) {
+            addFirstQuestionBtn.addEventListener('click', function () {
+                // Trigger the add question button click
+                document.getElementById('add-question-btn').click();
+            });
+        }
+
+        // Edit question button handlers
+        document.querySelectorAll('.edit-question-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const questionId = this.getAttribute('data-question-id');
+                
+                // Make an AJAX request to get question data
+                fetch(`{% url 'quiz:get_question' question_id=0 %}`.replace('0', questionId))
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Open modal with pre-filled form
+                        const modal = new bootstrap.Modal(document.getElementById('questionModal'));
+                        
+                        // Set modal title
+                        document.getElementById('questionModalLabel').textContent = 'Edit Question';
+                        
+                        // Load form HTML with pre-filled data
+                        const modalBody = document.querySelector('#questionModal .modal-body');
+                        
+                        // Create the form HTML
+                        const choicesHtml = data.choices.map((choice, index) => `
+                            <div class="choice-item mb-2 d-flex">
+                                <div class="form-check me-2 pt-2">
+                                    <input class="form-check-input" type="radio" name="is_correct" id="choice_radio_${index+1}" value="${index+1}" ${choice.is_correct ? 'checked' : ''}>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="text" class="form-control" name="choice_${index+1}" value="${choice.choice_text}" placeholder="Choice ${index+1}" required>
+                                    <input type="hidden" name="choice_id_${index+1}" value="${choice.id}">
+                                </div>
+                            </div>
+                        `).join('');
+                        
+                        modalBody.innerHTML = `
+                            <form id="question-form" method="post" action="/quiz/question/${questionId}/edit/">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="question_text" class="form-label">Question</label>
+                                    <textarea class="form-control" id="question_text" name="question_text" rows="3" required>${data.question_text}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="points" class="form-label">Points</label>
+                                    <input type="number" class="form-control" id="points" name="points" value="${data.points}" min="1" max="10">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Choices (select one correct answer)</label>
+                                    <div class="choices-container">
+                                        ${choicesHtml}
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        `;
+                        
+                        modal.show();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching question data:', error);
+                        alert('Error fetching question data. Please try again. Make sure you are logged in and have permission to edit this quiz.');
+                        
+                        // Log additional information for debugging
+                        console.log('Question ID:', questionId);
+                        console.log('URL:', `{% url 'quiz:get_question' question_id=0 %}`.replace('0', questionId));
+                    });
+            });
+        });
+
+        // Delete question button handlers
+        document.querySelectorAll('.delete-question-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const questionId = this.getAttribute('data-question-id');
+                
+                if (confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
+                    // Make an AJAX call to delete the question
+                    fetch(`{% url 'quiz:delete_question' 0 %}`.replace('0', questionId), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Remove the question card from the DOM
+                            const questionCard = btn.closest('.question-card');
+                            questionCard.remove();
+                            
+                            // Show success message
+                            alert('Question deleted successfully!');
+                            
+                            // Refresh the page to update question numbers
+                            window.location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

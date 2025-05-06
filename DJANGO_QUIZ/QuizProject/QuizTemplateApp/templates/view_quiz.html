@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+{% load quiz_extras %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #4a6bff;
+    --secondary: #00c9a7;
+    --dark: #1a1a2e;
+    --light: #f8f9fa;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --darker: #0f0f1a;
+    --card-bg: rgba(34, 34, 59, 0.8);
+    --sidebar-bg: rgba(26, 26, 46, 0.95);
+  }
+
+  body {
+    background-color: var(--dark);
+    color: var(--light);
+    perspective: 1000px;
+  }
+
+  #particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
+
+  .card {
+    border: none;
+    border-radius: 12px;
+    background-color: var(--card-bg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--light);
+    margin-bottom: 1.5rem;
+  }
+
+  .card:hover {
+    transform: translateY(-5px) rotateX(3deg);
+    box-shadow: 0 15px 30px rgba(74, 107, 255, 0.15);
+  }
+
+  .card-header {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--light);
+  }
+
+  .card-footer {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 5px var(--primary);
+  }
+
+  .quiz-header {
+    background: linear-gradient(135deg, rgba(74, 107, 255, 0.15), rgba(0, 201, 167, 0.05));
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quiz-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(74, 107, 255, 0.15), transparent 70%);
+    transform: rotate(30deg);
+    z-index: 0;
+  }
+
+  .quiz-header .content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .badge-difficulty {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 8px 15px;
+    font-weight: 500;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+  }
+
+  .quiz-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -5px 15px;
+  }
+  
+  .quiz-stat-item {
+    flex: 1 0 calc(25% - 10px);
+    margin: 5px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .quiz-stat-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .quiz-stat-item i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: var(--primary);
+  }
+  
+  .quiz-stat-item span {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .quiz-stat-item .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 5px;
+  }
+
+  .quiz-description {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary);
+  }
+
+  .question-card {
+    background: linear-gradient(145deg, rgba(35, 36, 66, 0.6), rgba(26, 26, 46, 0.8));
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s ease;
+  }
+
+  .question-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .question-number {
+    background: rgba(74, 107, 255, 0.2);
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+  }
+
+  .option-correct {
+    border-left: 3px solid var(--success);
+    background: rgba(40, 167, 69, 0.1);
+  }
+
+  .option-item {
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.3s ease;
+  }
+
+  .option-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .attempts-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+  }
+
+  .attempts-container.show {
+    max-height: 800px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(to right, var(--primary), #6a5cff);
+    border: none;
+    box-shadow: 0 5px 15px rgba(74, 107, 255, 0.3);
+    transition: all 0.3s ease;
+    color: white;
+    border-radius: 25px;
+    padding: 8px 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 107, 255, 0.4);
+    background: linear-gradient(to right, #5a7bff, var(--primary));
+  }
+
+  .btn-outline-primary {
+    border-color: var(--primary);
+    color: var(--primary);
+    border-radius: 25px;
+    padding: 8px 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .quiz-action-btn {
+    border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border: none;
+  }
+  
+  .quiz-action-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%);
+    opacity: 0;
+    transition: all 0.5s ease;
+    transform: scale(0);
+  }
+  
+  .quiz-action-btn:hover::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3 mb-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Your Profile</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="bg-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
+              style="width: 40px; height: 40px">
+              <i class="fas fa-trophy text-white"></i>
+            </div>
+            <div>
+              <h6 class="mb-0">Total Points</h6>
+              <h3 class="mb-0">{{ profile.total_points }}</h3>
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center mb-3">
+            <div class="bg-success rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
+              style="width: 40px; height: 40px">
+              <i class="fas fa-check-circle text-white"></i>
+            </div>
+            <div>
+              <h6 class="mb-0">Quizzes Taken</h6>
+              <h3 class="mb-0">{{ profile.quizzes_taken }}</h3>
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center">
+            <div class="bg-info rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
+              style="width: 40px; height: 40px">
+              <i class="fas fa-edit text-white"></i>
+            </div>
+            <div>
+              <h6 class="mb-0">Quizzes Created</h6>
+              <h3 class="mb-0">{{ profile.quizzes_created }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-grid gap-2">
+        <a href="{% url 'quiz:created_quizzes' %}" class="btn btn-outline-primary">
+          <i class="fas fa-arrow-left me-2"></i> Back to My Quizzes
+        </a>
+        <a href="{% url 'quiz:dashboard' %}" class="btn btn-outline-primary">
+          <i class="fas fa-home me-2"></i> Dashboard
+        </a>
+        {% if is_creator %}
+        <a href="{% url 'quiz:edit_quiz' quiz.id %}" class="btn btn-primary">
+          <i class="fas fa-edit me-2"></i> Edit Quiz
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      <!-- Quiz Header -->
+      <div class="quiz-header">
+        <div class="content">
+          <h2 class="fw-bold glow-text mb-3">{{ quiz.title }}</h2>
+          <span class="badge-difficulty badge {% if quiz.difficulty == 'Hard' %}bg-danger{% elif quiz.difficulty == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
+            {{ quiz.difficulty }}
+          </span>
+          
+          <div class="quiz-stats mt-4">
+            <div class="quiz-stat-item">
+              <i class="fas fa-layer-group"></i>
+              <span>Category</span>
+              <span class="stat-value">{{ quiz.category }}</span>
+            </div>
+            <div class="quiz-stat-item">
+              <i class="fas fa-question-circle"></i>
+              <span>Questions</span>
+              <span class="stat-value">{{ questions.count }}</span>
+            </div>
+            <div class="quiz-stat-item">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Created</span>
+              <span class="stat-value">{{ quiz.created_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="quiz-stat-item">
+              <i class="fas fa-user"></i>
+              <span>Creator</span>
+              <span class="stat-value">{{ quiz.created_by.username }}</span>
+            </div>
+          </div>
+          
+          {% if quiz.description %}
+          <div class="quiz-description">
+            <p class="mb-0">{{ quiz.description }}</p>
+          </div>
+          {% endif %}
+          
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-outline-primary quiz-action-btn" type="button" 
+                    onclick="toggleAttempts('attempts-history')">
+              <i class="fas fa-history me-2"></i> View Attempt History
+            </button>
+            
+            <a href="{% url 'quiz:start_quiz' quiz.id %}" class="btn btn-primary quiz-action-btn">
+              <i class="fas fa-play me-2"></i> Take Quiz
+            </a>
+          </div>
+          
+          <!-- Attempt History -->
+          <div id="attempts-history" class="attempts-container mt-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i> Your Attempt History</h5>
+              </div>
+              <div class="card-body">
+                {% if attempts %}
+                  {% for attempt in attempts %}
+                  <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="badge bg-info">Attempt #{{ forloop.counter }}</span>
+                      <small class="text-muted">{{ attempt.completed_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span>Score: {{ attempt.score }}/{{ questions.count }}</span>
+                      <span class="badge {% if attempt.score|get_percentage:questions.count >= 80 %}bg-success{% elif attempt.score|get_percentage:questions.count >= 60 %}bg-primary{% elif attempt.score|get_percentage:questions.count >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                        {{ attempt.score|get_percentage:questions.count|floatformat:1 }}%
+                      </span>
+                    </div>
+                    
+                    {% if attempt.completed_at and attempt.started_at %}
+                    <div class="small text-muted">
+                      <i class="fas fa-clock me-1"></i> {{ attempt.completed_at|time_diff:attempt.started_at }}
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="text-center py-3">
+                    <i class="fas fa-info-circle text-info fs-3 mb-3"></i>
+                    <p class="mb-1">You haven't attempted this quiz yet.</p>
+                    <p class="small text-muted">Take the quiz to see your scores here.</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Questions -->
+      <h4 class="mb-3 mt-4"><i class="fas fa-list me-2"></i>Questions</h4>
+      
+      {% if questions %}
+        {% for question in questions %}
+        <div class="question-card">
+          <div class="question-number">Question {{ forloop.counter }}</div>
+          <h5 class="mb-3">{{ question.question_text }}</h5>
+          
+          <div class="options">
+            {% for choice in question.choice_set.all %}
+            <div class="option-item {% if choice.is_correct %}option-correct{% endif %}">
+              {{ choice.choice_text }}
+              {% if choice.is_correct %}
+              <i class="fas fa-check-circle text-success float-end"></i>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-question-circle fa-4x text-muted mb-3"></i>
+          <h4>No questions found</h4>
+          <p class="text-muted">This quiz doesn't have any questions yet.</p>
+          {% if is_creator %}
+          <a href="{% url 'quiz:edit_quiz' quiz.id %}" class="btn btn-primary mt-3">
+            <i class="fas fa-plus me-2"></i> Add Questions
+          </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize particles.js
+  particlesJS('particles-js', {
+    particles: {
+      number: { value: 80, density: { enable: true, value_area: 800 } },
+      color: { value: '#4a6bff' },
+      shape: { type: 'circle' },
+      opacity: { value: 0.1, random: true },
+      size: { value: 3, random: true },
+      line_linked: { enable: true, distance: 150, color: '#4a6bff', opacity: 0.1, width: 1 },
+      move: { enable: true, speed: 1, direction: 'none', random: true, straight: false, out_mode: 'out' }
+    },
+    interactivity: {
+      detect_on: 'canvas',
+      events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } },
+      modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+    },
+    retina_detect: true
+  });
+});
+
+function toggleAttempts(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.classList.toggle('show');
+  }
+}
+</script>
+{% endblock %} 

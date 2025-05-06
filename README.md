@@ -21,9 +21,9 @@ A comprehensive quiz platform built with Flask that allows users to take quizzes
 
 ### Installation
 ```bash
-cd 123
+cd FlaskApi
 pip install -r requirements.txt
-flask run
+python run app.py
 ```
 
 ## 2. Django Quiz Application (DJANGO_QUIZ/)
